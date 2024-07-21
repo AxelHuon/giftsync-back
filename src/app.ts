@@ -1,10 +1,10 @@
 import express from "express";
-import apiRoutes from "./routes/index";
-import "dotenv/config";
 import sequelize from "./config/database";
 import Room from "./models/room.model";
-import User from "./models/user.model";
 import RoomUser from "./models/roomuser.model";
+import User from "./models/user.model";
+import apiRoutes from "./routes/index";
+import "dotenv/config";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -19,7 +19,7 @@ app.listen(port, async () => {
   console.log(`Serveur démarré sur http://localhost:${port}`);
   try {
     await sequelize.authenticate();
-    await sequelize.sync();
+    await sequelize.sync({ force: true });
     console.log("Database connected!");
     Room.belongsToMany(User, { through: RoomUser });
     User.belongsToMany(Room, { through: RoomUser });
