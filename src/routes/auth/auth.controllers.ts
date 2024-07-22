@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { v4 as uuidv4 } from "uuid";
 import AuthtokenModel from "../../models/authtoken.model";
 import Authtoken from "../../models/authtoken.model";
 import User from "../../models/user.model";
@@ -21,7 +20,6 @@ export const registerUser = async (req: Request, res: Response) => {
         .send("Email is already associated with an account");
     }
     await User.create({
-      id: uuidv4(),
       email,
       lastName,
       firstName,
@@ -37,12 +35,16 @@ export const registerUser = async (req: Request, res: Response) => {
 export const signInUser = async (req: Request, res: Response) => {
   try {
     const secretKey = process.env.JWT_SECRET;
-    const { email, password } = req.body;
+    const { email, password: passwordRequest } = req.body;
     const user = await User.findOne({
       where: { email },
     });
     if (user) {
-      const passwordValid = await bcrypt.compare(password, user.password);
+      const { password: currentPassword } = user;
+      const passwordValid = await bcrypt.compare(
+        passwordRequest,
+        currentPassword,
+      );
       if (!passwordValid) {
         return res.status(404).json("Incorrect email and password combination");
       }
@@ -51,7 +53,6 @@ export const signInUser = async (req: Request, res: Response) => {
       });
 
       let refreshToken = await AuthtokenModel.createToken(user);
-
       res.status(200).send({
         id: user.id,
         firstName: user.firstName,
@@ -87,12 +88,9 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
     if (Authtoken.verifyExpiration(refreshToken)) {
       await Authtoken.destroy({ where: { id: refreshToken.id } });
-      res
-        .status(403)
-        .send({
-          message:
-            "Refresh token was expired. Please make a new sign in request",
-        });
+      res.status(403).send({
+        message: "Refresh token was expired. Please make a new sign in request",
+      });
       return;
     }
 

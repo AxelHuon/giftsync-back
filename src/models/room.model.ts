@@ -1,6 +1,11 @@
-import { DataTypes, Model, Optional } from "sequelize";
+import {
+  DataTypes,
+  HasManyAddAssociationsMixin,
+  Model,
+  Optional,
+} from "sequelize";
 import slugify from "slugify";
-import sequelize from "../config/database";
+import connection from "../config/connection";
 import User from "./user.model";
 
 export interface RoomAttributes {
@@ -11,17 +16,18 @@ export interface RoomAttributes {
 }
 
 export interface RoomCreationAttributes
-  extends Optional<RoomAttributes, "slug"> {}
+  extends Optional<RoomAttributes, "slug" | "id"> {}
 
 export class Room
   extends Model<RoomAttributes, RoomCreationAttributes>
   implements RoomAttributes
 {
-  public id!: string;
-  public title!: string;
-  public ownerId!: string;
-  public slug!: string;
-  public addUser!: (user: User) => Promise<void>;
+  declare id: string;
+  declare title: string;
+  declare ownerId: string;
+  declare slug: string;
+  declare addUsers: HasManyAddAssociationsMixin<User, number>;
+
   static async generateUniqueSlug(title: string): Promise<string> {
     let slug = slugify(title, { lower: true });
     let uniqueSlug = slug;
@@ -58,7 +64,7 @@ Room.init(
     },
   },
   {
-    sequelize,
+    sequelize: connection,
     modelName: "Room",
     hooks: {
       beforeValidate: async (room: Room) => {

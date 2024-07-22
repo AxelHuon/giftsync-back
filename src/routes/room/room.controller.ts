@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import User from "../../models/user.model";
 import Room from "../../models/room.model";
+import User from "../../models/user.model";
 
 export const createRoomController = async (req: Request, res: Response) => {
   try {
@@ -25,14 +25,22 @@ export const createRoomController = async (req: Request, res: Response) => {
           title: title,
           ownerId: decodedToken.id,
         });
-        await room.addUser(owner);
+
+        const usersOfTheRooms = [];
+        usersOfTheRooms.push(owner);
+
+        await room.addUsers(usersOfTheRooms);
 
         const roomJustCreated = await Room.findByPk(idRoom, {
           include: [
             {
               model: User,
+              as: "users",
               through: {
                 attributes: [],
+              },
+              attributes: {
+                exclude: ["password", "createdAt", "updatedAt"],
               },
             },
           ],
@@ -51,12 +59,12 @@ export const createRoomController = async (req: Request, res: Response) => {
 export const addUserToRoom = async (req: Request, res: Response) => {
   try {
     const token = req.headers["authorization"];
-    const { userId } = req.body;
+    const { usersId } = req.body;
     const { roomId } = req.params;
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
       if (typeof decodedToken === "object" && "id" in decodedToken) {
-        if (!userId) {
+        if (!usersId) {
           return res.status(401).send({ message: "User is required" });
         }
         if (!roomId) {
@@ -68,13 +76,19 @@ export const addUserToRoom = async (req: Request, res: Response) => {
         if (!room) {
           return res.status(404).send({ message: "Room not found" });
         }
-
-        const userToAdd = await User.findByPk(userId);
-        if (!userToAdd) {
-          return res.status(404).send({ message: "User not found" });
+        let usersToAdd: User[] = [];
+        for (let i = 0; i < usersId.length; i++) {
+          const userToAdd = await User.findOne({ where: { id: usersId[i] } });
+          if (userToAdd) {
+            usersToAdd.push(userToAdd);
+          }
         }
-        await room.addUser(userToAdd);
-        return res.status(200).send({ message: "User added to room" });
+        if (usersToAdd && usersToAdd.length > 0) {
+          await room.addUsers(usersToAdd);
+          return res.status(200).send({ message: "User added to room" });
+        } else {
+          return res.status(404).send({ message: "No users found" });
+        }
       }
     } else {
       return res.status(401).send({ message: "Unauthorized" });
@@ -100,6 +114,7 @@ export const getSingleRoom = async (req: Request, res: Response) => {
           include: [
             {
               model: User,
+              as: "users",
               through: {
                 attributes: [],
               },

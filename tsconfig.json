@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "dist",
     "strict": true,
+    "lib": [
+      "esnext"
+    ],
+    "typeRoots": ["./src/routes/auth/authTypes.d.ts", "./node_modules/@types"],
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["./node_modules/@types", "./src/types/types.d.ts"],
-    "outDir": "./dist"
-  }
-}
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "esnext",
+    "moduleResolution": "Node"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 
+}
