@@ -5,6 +5,7 @@ export type GiftAttributes = {
   id: string;
   giftUrl: string;
   price: number;
+  listId: string;
 };
 
 type GiftCreationAttributes = Optional<GiftAttributes, "id">;
@@ -13,6 +14,7 @@ class Gift extends Model<GiftAttributes, GiftCreationAttributes> {
   declare id: string;
   declare giftUrl: string;
   declare price: number;
+  declare listId: string;
 }
 
 Gift.init(
@@ -27,6 +29,10 @@ Gift.init(
     },
     price: {
       type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    listId: {
+      type: DataTypes.UUID,
       allowNull: false,
     },
   },

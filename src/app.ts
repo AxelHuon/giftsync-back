@@ -12,7 +12,7 @@ app.use("/api", apiRoutes);
 
 const start = async (): Promise<void> => {
   try {
-    await connection.sync();
+    await connection.sync({ force: true });
     app.listen(port, () => {
       console.log(`Server started on port ${port}`);
     });

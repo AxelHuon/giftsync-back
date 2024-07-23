@@ -50,7 +50,7 @@ Room.init(
       allowNull: false,
     },
     ownerId: {
-      type: DataTypes.STRING,
+      type: DataTypes.UUID,
       allowNull: false,
     },
     slug: {
