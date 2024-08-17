@@ -1,8 +1,14 @@
-import { DataTypes, Model } from "sequelize";
-import sequelize from "../config/database";
+import {
+  DataTypes,
+  HasManyGetAssociationsMixin,
+  Model,
+  Optional,
+} from "sequelize";
+import { v4 as uuidv4 } from "uuid";
+import connection from "../config/connection";
 import Room from "./room.model";
 
-export interface UserAttributes {
+export type UserAttributes = {
   id: string;
   firstName: string;
   lastName: string;
@@ -10,18 +16,18 @@ export interface UserAttributes {
   password: string;
   createdAt?: string;
   updatedAt?: string;
-}
+};
+type UserCreationAttributes = Optional<UserAttributes, "id">;
 
-export class User extends Model<UserAttributes> implements UserAttributes {
-  public id!: string;
-  public firstName!: string;
-  public lastName!: string;
-  public email!: string;
-  public password!: string;
-  public updatedAt!: string;
-  public createdAt!: string;
-  public addRoom!: (room: Room) => Promise<void>;
-  public getRooms!: () => Promise<Room[]>;
+class User extends Model<UserAttributes, UserCreationAttributes> {
+  declare id: string;
+  declare firstName: string;
+  declare lastName: string;
+  declare email: string;
+  declare password: string;
+  declare createdAt?: string;
+  declare updatedAt?: string;
+  declare getRooms: HasManyGetAssociationsMixin<Room[]>;
 }
 
 User.init(
@@ -38,8 +44,15 @@ User.init(
     password: DataTypes.STRING,
   },
   {
-    sequelize,
-    modelName: "Users",
+    sequelize: connection,
+    modelName: "User",
+    hooks: {
+      beforeCreate: async (user: User) => {
+        if (!user.id) {
+          user.id = uuidv4();
+        }
+      },
+    },
   },
 );
 

@@ -1,7 +1,7 @@
-import { Model, DataTypes } from "sequelize";
-import sequelize from "../config/database";
-import User from "./user.model";
+import { DataTypes, Model } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
+import sequelize from "../config/connection";
+import User from "./user.model";
 
 export interface AuthTokenAttributes {
   id?: string;
