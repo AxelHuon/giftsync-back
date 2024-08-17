@@ -1,18 +1,45 @@
-import { DataTypes, Model } from "sequelize";
-import sequelize from "../config/database";
+import {
+  DataTypes,
+  HasManyAddAssociationsMixin,
+  HasManyGetAssociationsMixin,
+  Model,
+  Optional,
+} from "sequelize";
+import slugify from "slugify";
+import connection from "../config/connection";
 import User from "./user.model";
 
 export interface RoomAttributes {
   id: string;
   title: string;
   ownerId: string;
+  slug: string;
 }
 
-export class Room extends Model<RoomAttributes> implements RoomAttributes {
-  public id!: string;
-  public title!: string;
-  public ownerId!: string;
-  public addUser!: (user: User) => Promise<void>;
+export interface RoomCreationAttributes
+  extends Optional<RoomAttributes, "slug" | "id"> {}
+
+export class Room
+  extends Model<RoomAttributes, RoomCreationAttributes>
+  implements RoomAttributes
+{
+  declare id: string;
+  declare title: string;
+  declare ownerId: string;
+  declare slug: string;
+  declare addUsers: HasManyAddAssociationsMixin<User, number>;
+  declare getUsers: HasManyGetAssociationsMixin<User>;
+  static async generateUniqueSlug(title: string): Promise<string> {
+    let slug = slugify(title, { lower: true });
+    let uniqueSlug = slug;
+    let count = 1;
+
+    while (await Room.findOne({ where: { slug: uniqueSlug } })) {
+      uniqueSlug = `${slug}-${count++}`;
+    }
+
+    return uniqueSlug;
+  }
 }
 
 Room.init(
@@ -24,8 +51,13 @@ Room.init(
       allowNull: false,
     },
     ownerId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    slug: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     title: {
       type: DataTypes.STRING,
@@ -33,8 +65,23 @@ Room.init(
     },
   },
   {
-    sequelize,
+    sequelize: connection,
     modelName: "Room",
+    hooks: {
+      beforeValidate: async (room: Room) => {
+        if (!room.slug) {
+          room.slug = await Room.generateUniqueSlug(room.title);
+        }
+      },
+      beforeCreate: async (room: Room) => {
+        room.slug = await Room.generateUniqueSlug(room.title);
+      },
+      beforeUpdate: async (room: Room) => {
+        if (room.changed("title")) {
+          room.slug = await Room.generateUniqueSlug(room.title);
+        }
+      },
+    },
   },
 );
 

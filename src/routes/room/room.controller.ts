@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import User from "../../models/user.model";
 import Room from "../../models/room.model";
+import RoomUser from "../../models/roomuser.model";
+import User from "../../models/user.model";
 
-export const createRoomController = async (req: Request, res: Response) => {
+export const createRoom = async (req: Request, res: Response) => {
   try {
     const token = req.headers["authorization"];
     const { title } = req.body;
@@ -25,14 +26,22 @@ export const createRoomController = async (req: Request, res: Response) => {
           title: title,
           ownerId: decodedToken.id,
         });
-        await room.addUser(owner);
+
+        const usersOfTheRooms = [];
+        usersOfTheRooms.push(owner);
+
+        await room.addUsers(usersOfTheRooms);
 
         const roomJustCreated = await Room.findByPk(idRoom, {
           include: [
             {
               model: User,
+              as: "users",
               through: {
                 attributes: [],
+              },
+              attributes: {
+                exclude: ["password", "createdAt", "updatedAt"],
               },
             },
           ],
@@ -43,7 +52,6 @@ export const createRoomController = async (req: Request, res: Response) => {
       return res.status(401).send({ error: "Unauthorized" });
     }
   } catch (error: any) {
-    console.log(error);
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
@@ -51,12 +59,12 @@ export const createRoomController = async (req: Request, res: Response) => {
 export const addUserToRoom = async (req: Request, res: Response) => {
   try {
     const token = req.headers["authorization"];
-    const { userId } = req.body;
+    const { usersId } = req.body;
     const { roomId } = req.params;
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
       if (typeof decodedToken === "object" && "id" in decodedToken) {
-        if (!userId) {
+        if (!usersId) {
           return res.status(401).send({ message: "User is required" });
         }
         if (!roomId) {
@@ -69,18 +77,30 @@ export const addUserToRoom = async (req: Request, res: Response) => {
           return res.status(404).send({ message: "Room not found" });
         }
 
-        const userToAdd = await User.findByPk(userId);
-        if (!userToAdd) {
-          return res.status(404).send({ message: "User not found" });
+        if (room) {
+          const usersOfTheRooms = room.getUsers();
+
+          console.log(usersOfTheRooms);
+
+          let usersToAdd: User[] = [];
+          for (let i = 0; i < usersId.length; i++) {
+            const userToAdd = await User.findOne({ where: { id: usersId[i] } });
+            if (userToAdd) {
+              usersToAdd.push(userToAdd);
+            }
+          }
+          if (usersToAdd && usersToAdd.length > 0) {
+            await room.addUsers(usersToAdd);
+            return res.status(200).send({ message: "User added to room" });
+          } else {
+            return res.status(404).send({ message: "No users found" });
+          }
         }
-        await room.addUser(userToAdd);
-        return res.status(200).send({ message: "User added to room" });
       }
     } else {
       return res.status(401).send({ message: "Unauthorized" });
     }
   } catch (error: any) {
-    console.log(error);
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
@@ -95,11 +115,11 @@ export const getSingleRoom = async (req: Request, res: Response) => {
         if (!roomId) {
           return res.status(401).send({ message: "Room is required" });
         }
-
         const room = await Room.findByPk(roomId, {
           include: [
             {
               model: User,
+              as: "users",
               through: {
                 attributes: [],
               },
@@ -117,7 +137,91 @@ export const getSingleRoom = async (req: Request, res: Response) => {
       return res.status(401).send({ message: "Unauthorized" });
     }
   } catch (error: any) {
-    console.log(error);
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+export const putNameOfRoom = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers["authorization"];
+    const { roomId } = req.params;
+    const { title } = req.body;
+    if (token) {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
+      if (typeof decodedToken === "object" && "id" in decodedToken) {
+        const room = await Room.findByPk(roomId);
+        if (!title) {
+          return res.status(401).send({ message: "Title is required" });
+        }
+        if (room) {
+          if (room.ownerId === decodedToken.id) {
+            room.title = title;
+            await room.save();
+            res.status(200).json(room);
+          } else {
+            return res
+              .status(401)
+              .send({ message: "Your not the owner of the room" });
+          }
+        } else {
+          return res.status(401).send({ message: "Room is not found" });
+        }
+      }
+    } else {
+      return res.status(401).send({ message: "Unauthorized" });
+    }
+  } catch (error: any) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+export const deleteUserFromARoom = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers["authorization"];
+    const { roomId } = req.params;
+    const { userId } = req.body;
+    if (token) {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
+      if (typeof decodedToken === "object" && "id" in decodedToken) {
+        const room = await Room.findByPk(roomId);
+        if (!userId) {
+          return res.status(401).send({ message: "User is required" });
+        }
+        if (room) {
+          if (room.ownerId === decodedToken.id) {
+            if (userId === decodedToken.id) {
+              return res.status(401).send({
+                message:
+                  "You can't remove you from the room because you are the owner of this room",
+              });
+            } else {
+              const roomUser = await RoomUser.findOne({
+                where: { RoomId: roomId, UserId: userId },
+              });
+              if (!roomUser) {
+                return res
+                  .status(404)
+                  .json({ message: "User is not associated with this room" });
+              } else {
+                await roomUser.destroy();
+                return res
+                  .status(200)
+                  .send({ message: "User as been deleted from this room" });
+              }
+            }
+          } else {
+            return res
+              .status(401)
+              .send({ message: "Your not the owner of the room" });
+          }
+        } else {
+          return res.status(401).send({ message: "Room is not found" });
+        }
+      }
+    } else {
+      return res.status(401).send({ message: "Unauthorized" });
+    }
+  } catch (error: any) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
@@ -148,7 +252,6 @@ export const deleteRoom = async (req: Request, res: Response) => {
       return res.status(401).send({ message: "Unauthorized" });
     }
   } catch (error: any) {
-    console.log(error);
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };

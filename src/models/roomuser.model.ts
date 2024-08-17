@@ -1,5 +1,5 @@
 import { DataTypes, Model } from "sequelize";
-import sequelize from "../config/database";
+import connection from "../config/connection";
 import Room from "./room.model";
 import User from "./user.model";
 
@@ -22,26 +22,26 @@ RoomUser.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: Room, // Use the Room model
+        model: Room,
         key: "id",
       },
-      field: "roomId", // Explicitly specify the column name
+      field: "roomId",
     },
     UserId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: User, // Use the User model
+        model: User,
         key: "id",
       },
-      field: "userId", // Explicitly specify the column name
+      field: "userId",
     },
   },
   {
-    sequelize,
+    sequelize: connection,
     modelName: "RoomUser",
-    tableName: "RoomUsers", // Explicitly specify the table name
-    timestamps: false, // Disable timestamps if not needed
+    tableName: "RoomUsers",
+    timestamps: false,
   },
 );
 

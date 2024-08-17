@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import AuthtokenModel from "../../models/authtoken.model";
-import User from "../../models/user.model";
-import { v4 as uuidv4 } from "uuid";
 import Authtoken from "../../models/authtoken.model";
+import User from "../../models/user.model";
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -20,30 +20,31 @@ export const registerUser = async (req: Request, res: Response) => {
         .send("Email is already associated with an account");
     }
     await User.create({
-      id: uuidv4(),
       email,
       lastName,
       firstName,
       password: await bcrypt.hash(password, 12),
     });
-    return res.status(200).send("Registration successful");
+    return res.status(200).send({ message: "Registration successful" });
   } catch (err) {
     console.log(err);
-    return res
-      .status(500)
-      .send({ status: 500, message: "Error in registering user" });
+    return res.status(500).send({ message: "Error in registering user" });
   }
 };
 
 export const signInUser = async (req: Request, res: Response) => {
   try {
     const secretKey = process.env.JWT_SECRET;
-    const { email, password } = req.body;
+    const { email, password: passwordRequest } = req.body;
     const user = await User.findOne({
       where: { email },
     });
     if (user) {
-      const passwordValid = await bcrypt.compare(password, user.password);
+      const { password: currentPassword } = user;
+      const passwordValid = await bcrypt.compare(
+        passwordRequest,
+        currentPassword,
+      );
       if (!passwordValid) {
         return res.status(404).json("Incorrect email and password combination");
       }
@@ -52,7 +53,6 @@ export const signInUser = async (req: Request, res: Response) => {
       });
 
       let refreshToken = await AuthtokenModel.createToken(user);
-
       res.status(200).send({
         id: user.id,
         firstName: user.firstName,
@@ -62,20 +62,20 @@ export const signInUser = async (req: Request, res: Response) => {
         refreshToken,
       });
     } else {
-      return res.status(404).json("Incorrect email and password combination");
+      return res
+        .status(402)
+        .json({ message: "Incorrect email and password combination" });
     }
   } catch (err) {
     console.log(err);
-    return res
-      .status(500)
-      .send({ status: 500, message: "Error in signIn user" });
+    return res.status(500).send({ message: "Error in signIn user" });
   }
 };
 
 export const refreshToken = async (req: Request, res: Response) => {
   const { refreshToken: requestToken } = req.body;
   if (requestToken == null) {
-    return res.status(403).send("Refresh Token is required!");
+    return res.status(403).send({ message: "Refresh Token is required!" });
   }
 
   try {
@@ -88,9 +88,9 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
     if (Authtoken.verifyExpiration(refreshToken)) {
       await Authtoken.destroy({ where: { id: refreshToken.id } });
-      res
-        .status(403)
-        .send("Refresh token was expired. Please make a new sign in request");
+      res.status(403).send({
+        message: "Refresh token was expired. Please make a new sign in request",
+      });
       return;
     }
 

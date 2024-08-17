@@ -1,13 +1,8 @@
-import { Request, Response } from "express";
-import User from "../../models/user.model";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { ApiError } from "../api";
-import { BodyGetApiUserMeResponse } from "./userApi";
+import User from "../../models/user.model";
 
-export const getMe = async (
-  req: Request,
-  res: Response<BodyGetApiUserMeResponse | ApiError>,
-) => {
+export const getMe = async (req: Request, res: Response) => {
   try {
     const token = req.headers["authorization"];
     if (token) {
@@ -17,7 +12,6 @@ export const getMe = async (
           where: { id: decodedToken.id },
           attributes: { exclude: ["password"] },
         });
-
         if (user) {
           res.status(200).send(user);
         } else {
@@ -32,7 +26,11 @@ export const getMe = async (
   }
 };
 
-export const getRoomOfUserConnected = async (req: Request, res: Response) => {
+export const getRoomOfUserConnected = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const token = req.headers["authorization"];
     if (token) {
@@ -44,16 +42,28 @@ export const getRoomOfUserConnected = async (req: Request, res: Response) => {
         });
 
         if (user) {
-          const rooms = await user.getRooms();
+          const rooms = await user.getRooms({
+            include: [
+              {
+                model: User,
+                as: "users",
+                through: {
+                  attributes: [],
+                },
+              },
+            ],
+            attributes: { exclude: ["createdAt", "updatedAt"] },
+          });
+
           res.status(200).send(rooms);
         } else {
           res.status(404).send({ statusCode: 500, message: "User not found" });
         }
       }
+    } else {
+      res.status(403).send({ message: "No token provided!" });
     }
   } catch (err) {
-    res
-      .status(500)
-      .send({ statusCode: 500, message: "Sorry an error occurred." });
+    next(err);
   }
 };

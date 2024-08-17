@@ -1,5 +1,6 @@
+import { NextFunction, Response } from "express";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
-import { NextFunction, Request, Response } from "express";
+import { RequestAuth } from "./authTypes";
 
 const catchError = (err: unknown, res: Response) => {
   if (err instanceof TokenExpiredError) {
@@ -11,7 +12,7 @@ const catchError = (err: unknown, res: Response) => {
 };
 
 export const verifyToken = (
-  req: Request,
+  req: RequestAuth,
   res: Response,
   next: NextFunction,
 ) => {
@@ -27,8 +28,9 @@ export const verifyToken = (
       console.log(err);
       return catchError(err, res);
     }
-    // @ts-ignore
-    req?.user = decoded;
+    if (req && req) {
+      req.user = decoded;
+    }
     next();
   });
 };

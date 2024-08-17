@@ -1,29 +1,24 @@
 import express from "express";
+import connection from "./config/connection";
 import apiRoutes from "./routes/index";
 import "dotenv/config";
-import sequelize from "./config/database";
-import Room from "./models/room.model";
-import User from "./models/user.model";
-import RoomUser from "./models/roomuser.model";
+import "./models/associations"; // Importer les associations après les modèles
 
 const app = express();
 const port = process.env.PORT || 3001;
-const cors = require("cors");
 
 app.use(express.json());
-app.use(cors());
-
 app.use("/api", apiRoutes);
 
-app.listen(port, async () => {
-  console.log(`Serveur démarré sur http://localhost:${port}`);
+const start = async (): Promise<void> => {
   try {
-    await sequelize.authenticate();
-    await sequelize.sync();
-    console.log("Database connected!");
-    Room.belongsToMany(User, { through: RoomUser });
-    User.belongsToMany(Room, { through: RoomUser });
+    await connection.sync();
+    app.listen(port, () => {
+      console.log(`Server started on port ${port}`);
+    });
   } catch (error) {
-    console.error("Database connection error:", error);
+    console.error(error);
+    process.exit(1);
   }
-});
+};
+void start();
