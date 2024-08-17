@@ -1,6 +1,7 @@
 import {
   DataTypes,
   HasManyAddAssociationsMixin,
+  HasManyGetAssociationsMixin,
   Model,
   Optional,
 } from "sequelize";
@@ -27,7 +28,7 @@ export class Room
   declare ownerId: string;
   declare slug: string;
   declare addUsers: HasManyAddAssociationsMixin<User, number>;
-
+  declare getUsers: HasManyGetAssociationsMixin<User>;
   static async generateUniqueSlug(title: string): Promise<string> {
     let slug = slugify(title, { lower: true });
     let uniqueSlug = slug;
