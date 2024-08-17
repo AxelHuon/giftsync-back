@@ -9,7 +9,6 @@ const port = process.env.PORT || 3001;
 
 app.use(express.json());
 app.use("/api", apiRoutes);
-
 const start = async (): Promise<void> => {
   try {
     await connection.sync();
