@@ -1,11 +1,16 @@
 import { Sequelize } from "sequelize";
 
-const connection = new Sequelize({
+const connection = new Sequelize(process.env.DATABASE_URL || "", {
   dialect: "postgres",
-  database: process.env.PGDATABASE || "",
-  username: process.env.PGUSER || "",
-  password: process.env.PGPASSWORD || "",
-  host: process.env.PGHOST || "",
+  protocol: "postgres",
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
+  logging: false,
 });
 
+// Export de la connexion
 export default connection;
