@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import User from "../../models/user.model";
+import { getToken } from "../auth/auth.middleware";
 
 export const getMe = async (req: Request, res: Response) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
       if (typeof decodedToken === "object" && "id" in decodedToken) {
@@ -32,7 +33,7 @@ export const getRoomOfUserConnected = async (
   next: NextFunction,
 ) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
       if (typeof decodedToken === "object" && "id" in decodedToken) {

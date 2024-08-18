@@ -1,4 +1,4 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import sequelize from "../config/connection";
 import User from "./user.model";
@@ -10,14 +10,18 @@ export interface AuthTokenAttributes {
   expiryDate: Date;
 }
 
+// Optional fields for creation
+interface AuthTokenCreationAttributes
+  extends Optional<AuthTokenAttributes, "id"> {}
+
 export class AuthtokenModel
-  extends Model<AuthTokenAttributes>
+  extends Model<AuthTokenAttributes, AuthTokenCreationAttributes>
   implements AuthTokenAttributes
 {
-  public user!: string;
-  public id!: string;
-  public token!: string;
-  public expiryDate!: Date;
+  declare id: string;
+  declare user: string;
+  declare token: string;
+  declare expiryDate: Date;
 
   static associate(models: any) {
     AuthtokenModel.belongsTo(models.User, {
@@ -38,19 +42,46 @@ export class AuthtokenModel
       user: user.id,
       expiryDate: expiredAt,
     });
-    return refreshToken.token;
+    return refreshToken.dataValues.token;
   };
 
   static verifyExpiration = (token: AuthtokenModel): boolean => {
-    return token.expiryDate.getTime() < new Date().getTime();
+    return token.dataValues.expiryDate.getTime() < new Date().getTime();
+  };
+
+  static verifyAndDeleteExpiredToken = async (
+    token: AuthtokenModel,
+  ): Promise<boolean> => {
+    const isExpired =
+      token.dataValues.expiryDate.getTime() < new Date().getTime();
+
+    if (isExpired) {
+      await AuthtokenModel.destroy({ where: { id: token.id } });
+    }
+
+    return isExpired;
   };
 }
 
 AuthtokenModel.init(
   {
-    user: DataTypes.UUID,
-    token: DataTypes.STRING,
-    expiryDate: DataTypes.DATE,
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    user: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    token: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    expiryDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
   },
   {
     sequelize,

@@ -2,13 +2,13 @@ import { Sequelize } from "sequelize";
 
 const connection = new Sequelize(
   process.env.DATABASE_URL ||
-    "postgres://u3kpgsoe4mptt2:p1e8f68b4b0f31e3667e7201dbf3e2ea444826636344d7bacf4bb04dfd5ea56e7@c6sfjnr30ch74e.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d9la8okja9u72v",
+    "postgres://u2d6ng7r83d2ai:pff8c2940814f05d4ec1f0e733754757d30b1b93b9eee4fc854cdd95aaf7aa594@c724r43q8jp5nk.cluster-czz5s0kz4scl.eu-west-1.rds.amazonaws.com:5432/d5jgbs0ud4o0an",
   {
     dialect: "postgres",
     protocol: "postgres",
     dialectOptions: {
       ssl: {
-        require: true,
+        require: false,
         rejectUnauthorized: false,
       },
     },

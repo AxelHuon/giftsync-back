@@ -1,5 +1,6 @@
 import { NextFunction, Response } from "express";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
+import { IncomingHttpHeaders } from "node:http";
 import { RequestAuth } from "./authTypes";
 
 const catchError = (err: unknown, res: Response) => {
@@ -16,13 +17,22 @@ export const verifyToken = (
   res: Response,
   next: NextFunction,
 ) => {
-  let token = req.headers["authorization"];
-  if (!token) {
+  let authorizationHeader = req.headers["authorization"];
+  if (!authorizationHeader) {
     return res.status(403).send({ message: "No token provided!" });
   }
-  console.log(token);
-  const secretKey = process.env.JWT_SECRET;
 
+  if (authorizationHeader.startsWith("Bearer ")) {
+    authorizationHeader = authorizationHeader.slice(
+      7,
+      authorizationHeader.length,
+    );
+  } else {
+    return res.status(403).send({ message: "No token provided!" });
+  }
+
+  const token = authorizationHeader;
+  const secretKey = process.env.JWT_SECRET;
   jwt.verify(token, secretKey ?? "", (err: unknown, decoded: any) => {
     if (err) {
       console.log(err);
@@ -33,4 +43,11 @@ export const verifyToken = (
     }
     next();
   });
+};
+
+export const getToken = (headers: IncomingHttpHeaders): string | undefined => {
+  let authorizationHeader = headers["authorization"];
+  if (authorizationHeader) {
+    return authorizationHeader.slice(7, authorizationHeader.length);
+  }
 };

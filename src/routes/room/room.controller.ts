@@ -4,10 +4,11 @@ import { v4 as uuidv4 } from "uuid";
 import Room from "../../models/room.model";
 import RoomUser from "../../models/roomuser.model";
 import User from "../../models/user.model";
+import { getToken } from "../auth/auth.middleware";
 
 export const createRoom = async (req: Request, res: Response) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     const { title } = req.body;
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
@@ -58,7 +59,7 @@ export const createRoom = async (req: Request, res: Response) => {
 
 export const addUserToRoom = async (req: Request, res: Response) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     const { usersId } = req.body;
     const { roomId } = req.params;
     if (token) {
@@ -107,7 +108,7 @@ export const addUserToRoom = async (req: Request, res: Response) => {
 
 export const getSingleRoom = async (req: Request, res: Response) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     const { roomId } = req.params;
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
@@ -143,7 +144,7 @@ export const getSingleRoom = async (req: Request, res: Response) => {
 
 export const putNameOfRoom = async (req: Request, res: Response) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     const { roomId } = req.params;
     const { title } = req.body;
     if (token) {
@@ -177,7 +178,7 @@ export const putNameOfRoom = async (req: Request, res: Response) => {
 
 export const deleteUserFromARoom = async (req: Request, res: Response) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     const { roomId } = req.params;
     const { userId } = req.body;
     if (token) {
@@ -228,7 +229,7 @@ export const deleteUserFromARoom = async (req: Request, res: Response) => {
 
 export const deleteRoom = async (req: Request, res: Response) => {
   try {
-    const token = req.headers["authorization"];
+    const token = getToken(req.headers);
     const { roomId } = req.params;
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
