@@ -6,7 +6,7 @@
     "lib": [
       "esnext"
     ],
-    "typeRoots": ["./src/routes/auth/authTypes.d.ts", "./node_modules/@types","/types"],
+    "typeRoots": ["./src/routes/auth/authTypes.d.ts", "./node_modules/@types","./types"],
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
