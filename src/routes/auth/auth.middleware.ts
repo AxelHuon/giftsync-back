@@ -19,7 +19,9 @@ export const verifyToken = (
 ) => {
   let authorizationHeader = req.headers["authorization"];
   if (!authorizationHeader) {
-    return res.status(403).send({ message: "No token provided!" });
+    return res
+      .status(403)
+      .send({ message: "No token provided!", code: "no_token_provided" });
   }
 
   if (authorizationHeader.startsWith("Bearer ")) {
@@ -28,7 +30,9 @@ export const verifyToken = (
       authorizationHeader.length,
     );
   } else {
-    return res.status(403).send({ message: "No token provided!" });
+    return res
+      .status(403)
+      .send({ message: "No token provided!", code: "no_token_provided" });
   }
 
   const token = authorizationHeader;

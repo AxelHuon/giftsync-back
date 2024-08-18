@@ -23,5 +23,12 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 export const setupSwagger = (app: Express) => {
+  // Route pour afficher le JSON Swagger directement
+  app.get("/swagger.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+  });
+
+  // Route pour l'interface Swagger UI
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 };
