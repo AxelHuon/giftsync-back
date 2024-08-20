@@ -36,7 +36,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             });
             if (userExists) {
                 this.setStatus(400); // you can set the response status code manually
-                throw {
+                return {
                     message: "Email is already associated with an account",
                     code: "email_already_exists",
                 };
@@ -60,7 +60,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             const { email, password: passwordRequest } = body;
             if (!email || !passwordRequest) {
                 this.setStatus(400);
-                throw {
+                return {
                     message: "Email and password are required",
                     code: "email_and_password_required",
                 };
@@ -72,7 +72,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 const passwordValid = yield bcrypt.compare(passwordRequest, user.password);
                 if (!passwordValid) {
                     this.setStatus(401);
-                    throw {
+                    return {
                         message: "Incorrect email and password combination",
                         code: "error_signIn_combination",
                     };
@@ -93,7 +93,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             }
             else {
                 this.setStatus(404);
-                throw {
+                return {
                     message: "User not found",
                     code: "user_not_found",
                 };
@@ -106,7 +106,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             const { refreshToken: requestToken } = body;
             if (!requestToken) {
                 this.setStatus(403);
-                throw {
+                return {
                     message: "Refresh Token is required!",
                     code: "refresh_token_required",
                 };
@@ -117,7 +117,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 });
                 if (!refreshToken) {
                     this.setStatus(404);
-                    throw {
+                    return {
                         message: "Invalid refresh token",
                         code: "invalid_refresh_token",
                     };
@@ -125,7 +125,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 const isExpired = yield authtoken_model_1.default.verifyAndDeleteExpiredToken(refreshToken);
                 if (isExpired) {
                     this.setStatus(403);
-                    throw {
+                    return {
                         message: "Refresh token was expired. Please make a new sign in request",
                         code: "expired_refresh_token",
                     };
@@ -148,7 +148,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 }
                 else {
                     this.setStatus(404);
-                    throw {
+                    return {
                         message: "User not found",
                         code: "user_not_found",
                     };
@@ -157,7 +157,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             catch (err) {
                 console.log("err", err);
                 this.setStatus(500);
-                throw {
+                return {
                     message: "Internal server error",
                     code: "internal_server_error",
                 };

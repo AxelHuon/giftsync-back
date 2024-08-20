@@ -49,7 +49,7 @@ export class AuthController extends Controller {
   @Response<Error>("500", "Error in registering user")
   public async registerUser(
     @Body() body: RegisterUserRequest,
-  ): Promise<RegisterUserResponse> {
+  ): Promise<RegisterUserResponse | Error> {
     const { firstName, lastName, email, password } = body;
     const userExists = await User.findOne({
       where: { email },
@@ -57,10 +57,10 @@ export class AuthController extends Controller {
 
     if (userExists) {
       this.setStatus(400); // you can set the response status code manually
-      throw {
+      return {
         message: "Email is already associated with an account",
         code: "email_already_exists",
-      } as Error;
+      };
     }
 
     await User.create({
@@ -85,16 +85,16 @@ export class AuthController extends Controller {
   @Response<Error>("500", "Error in signIn user")
   public async signInUser(
     @Body() body: SignInUserRequest,
-  ): Promise<SignInUserResponse> {
+  ): Promise<SignInUserResponse | Error> {
     const secretKey = process.env.JWT_SECRET;
     const { email, password: passwordRequest } = body;
 
     if (!email || !passwordRequest) {
       this.setStatus(400);
-      throw {
+      return {
         message: "Email and password are required",
         code: "email_and_password_required",
-      } as Error;
+      };
     }
 
     const user = await User.findOne({
@@ -108,10 +108,10 @@ export class AuthController extends Controller {
       );
       if (!passwordValid) {
         this.setStatus(401);
-        throw {
+        return {
           message: "Incorrect email and password combination",
           code: "error_signIn_combination",
-        } as Error;
+        };
       }
       const token = jwt.sign({ id: user.id }, secretKey ?? "", {
         expiresIn: "2h",
@@ -129,7 +129,7 @@ export class AuthController extends Controller {
       };
     } else {
       this.setStatus(404);
-      throw {
+      return {
         message: "User not found",
         code: "user_not_found",
       } as Error;
@@ -143,15 +143,15 @@ export class AuthController extends Controller {
   @Response<Error>("500", "Internal server error")
   public async refreshToken(
     @Body() body: RefreshTokenRequest,
-  ): Promise<RefreshTokenResponse> {
+  ): Promise<RefreshTokenResponse | Error> {
     const { refreshToken: requestToken } = body;
 
     if (!requestToken) {
       this.setStatus(403);
-      throw {
+      return {
         message: "Refresh Token is required!",
         code: "refresh_token_required",
-      } as Error;
+      };
     }
 
     try {
@@ -161,21 +161,21 @@ export class AuthController extends Controller {
 
       if (!refreshToken) {
         this.setStatus(404);
-        throw {
+        return {
           message: "Invalid refresh token",
           code: "invalid_refresh_token",
-        } as Error;
+        };
       }
 
       const isExpired =
         await AuthtokenModel.verifyAndDeleteExpiredToken(refreshToken);
       if (isExpired) {
         this.setStatus(403);
-        throw {
+        return {
           message:
             "Refresh token was expired. Please make a new sign in request",
           code: "expired_refresh_token",
-        } as Error;
+        };
       }
 
       const user = await User.findOne({
@@ -203,18 +203,18 @@ export class AuthController extends Controller {
         };
       } else {
         this.setStatus(404);
-        throw {
+        return {
           message: "User not found",
           code: "user_not_found",
-        } as Error;
+        };
       }
     } catch (err) {
       console.log("err", err);
       this.setStatus(500);
-      throw {
+      return {
         message: "Internal server error",
         code: "internal_server_error",
-      } as Error;
+      };
     }
   }
 }

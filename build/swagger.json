@@ -160,7 +160,14 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/RegisterUserResponse"
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/RegisterUserResponse"
+										},
+										{
+											"$ref": "#/components/schemas/Error"
+										}
+									]
 								}
 							}
 						},
@@ -222,7 +229,14 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/SignInUserResponse"
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/SignInUserResponse"
+										},
+										{
+											"$ref": "#/components/schemas/Error"
+										}
+									]
 								}
 							}
 						},
@@ -310,7 +324,14 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/RefreshTokenResponse"
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/RefreshTokenResponse"
+										},
+										{
+											"$ref": "#/components/schemas/Error"
+										}
+									]
 								}
 							}
 						},
