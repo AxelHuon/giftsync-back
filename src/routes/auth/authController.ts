@@ -47,9 +47,7 @@ export class AuthController extends Controller {
   @SuccessResponse<RegisterUserResponse>("200", "User successfully registered")
   @Response<Error>("400", "Email is already associated with an account")
   @Response<Error>("500", "Error in registering user")
-  public async registerUser(
-    @Body() body: RegisterUserRequest,
-  ): Promise<RegisterUserResponse | Error> {
+  public async registerUser(@Body() body: RegisterUserRequest) {
     const { firstName, lastName, email, password } = body;
     const userExists = await User.findOne({
       where: { email },
@@ -83,9 +81,7 @@ export class AuthController extends Controller {
   @Response<Error>("401", "Incorrect email and password combination")
   @Response<Error>("404", "User not found")
   @Response<Error>("500", "Error in signIn user")
-  public async signInUser(
-    @Body() body: SignInUserRequest,
-  ): Promise<SignInUserResponse | Error> {
+  public async signInUser(@Body() body: SignInUserRequest) {
     const secretKey = process.env.JWT_SECRET;
     const { email, password: passwordRequest } = body;
 
@@ -132,7 +128,7 @@ export class AuthController extends Controller {
       return {
         message: "User not found",
         code: "user_not_found",
-      } as Error;
+      };
     }
   }
 
@@ -141,9 +137,7 @@ export class AuthController extends Controller {
   @Response<Error>("403", "Refresh Token is required!")
   @Response<Error>("404", "Invalid refresh token")
   @Response<Error>("500", "Internal server error")
-  public async refreshToken(
-    @Body() body: RefreshTokenRequest,
-  ): Promise<RefreshTokenResponse | Error> {
+  public async refreshToken(@Body() body: RefreshTokenRequest) {
     const { refreshToken: requestToken } = body;
 
     if (!requestToken) {

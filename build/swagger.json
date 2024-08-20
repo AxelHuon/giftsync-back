@@ -7,7 +7,7 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"RegisterUserResponse": {
+			"Error": {
 				"properties": {
 					"message": {
 						"type": "string"
@@ -23,7 +23,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Error": {
+			"RegisterUserResponse": {
 				"properties": {
 					"message": {
 						"type": "string"
@@ -160,14 +160,19 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"$ref": "#/components/schemas/RegisterUserResponse"
+									"properties": {
+										"code": {
+											"type": "string"
 										},
-										{
-											"$ref": "#/components/schemas/Error"
+										"message": {
+											"type": "string"
 										}
-									]
+									},
+									"required": [
+										"code",
+										"message"
+									],
+									"type": "object"
 								}
 							}
 						},
@@ -231,10 +236,56 @@
 								"schema": {
 									"anyOf": [
 										{
-											"$ref": "#/components/schemas/SignInUserResponse"
+											"properties": {
+												"refreshToken": {},
+												"accessToken": {},
+												"email": {},
+												"lastName": {},
+												"firstName": {},
+												"id": {},
+												"code": {
+													"type": "string"
+												},
+												"message": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"code",
+												"message"
+											],
+											"type": "object"
 										},
 										{
-											"$ref": "#/components/schemas/Error"
+											"properties": {
+												"code": {},
+												"message": {},
+												"refreshToken": {
+													"type": "string"
+												},
+												"accessToken": {},
+												"email": {
+													"type": "string"
+												},
+												"lastName": {
+													"type": "string"
+												},
+												"firstName": {
+													"type": "string"
+												},
+												"id": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"refreshToken",
+												"accessToken",
+												"email",
+												"lastName",
+												"firstName",
+												"id"
+											],
+											"type": "object"
 										}
 									]
 								}
@@ -326,10 +377,36 @@
 								"schema": {
 									"anyOf": [
 										{
-											"$ref": "#/components/schemas/RefreshTokenResponse"
+											"properties": {
+												"refreshToken": {},
+												"accessToken": {},
+												"code": {
+													"type": "string"
+												},
+												"message": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"code",
+												"message"
+											],
+											"type": "object"
 										},
 										{
-											"$ref": "#/components/schemas/Error"
+											"properties": {
+												"code": {},
+												"message": {},
+												"refreshToken": {
+													"type": "string"
+												},
+												"accessToken": {}
+											},
+											"required": [
+												"refreshToken",
+												"accessToken"
+											],
+											"type": "object"
 										}
 									]
 								}
