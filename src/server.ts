@@ -13,7 +13,7 @@ const swaggerDocument = require("../swagger.json");
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/swagger-json", (req, res) => {
-  const swaggerFilePath = path.join(__dirname, "./swagger.json");
+  const swaggerFilePath = path.join(__dirname, "../swagger.json");
 
   // Lire le fichier JSON
   fs.readFile(swaggerFilePath, "utf8", (err, data) => {

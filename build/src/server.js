@@ -46,7 +46,7 @@ const port = process.env.PORT || 3001;
 const swaggerDocument = require("../swagger.json");
 app_1.app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
 app_1.app.get("/swagger-json", (req, res) => {
-    const swaggerFilePath = path.join(__dirname, "./swagger.json");
+    const swaggerFilePath = path.join(__dirname, "../swagger.json");
     // Lire le fichier JSON
     fs.readFile(swaggerFilePath, "utf8", (err, data) => {
         if (err) {
