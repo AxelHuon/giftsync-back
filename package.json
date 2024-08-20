@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node build/src/server.js",
     "pre-build": "tsoa spec-and-routes && tsc --outDir build --experimentalDecorators",
-    "dev": "nodemon src/server.ts",
     "tsoa:routes": "tsoa routes",
     "tsoa:spec": "tsoa spec"
   },
