@@ -35,22 +35,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importStar(require("express"));
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const app_1 = require("./app");
 const connection_1 = __importDefault(require("./config/connection"));
 require("dotenv/config");
 require("./models/associations"); // Importer les associations après les modèles
-const app = (0, express_1.default)();
 const port = process.env.PORT || 3001;
-app.use((0, express_1.urlencoded)({
-    extended: true,
-}));
-app.use((0, express_1.json)());
-const swaggerDocument = require("./swagger.json");
-app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
-app.get("/swagger-json", (req, res) => {
+const swaggerDocument = require("../swagger.json");
+app_1.app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
+app_1.app.get("/swagger-json", (req, res) => {
     const swaggerFilePath = path.join(__dirname, "./swagger.json");
     // Lire le fichier JSON
     fs.readFile(swaggerFilePath, "utf8", (err, data) => {
@@ -66,8 +61,8 @@ app.get("/swagger-json", (req, res) => {
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield connection_1.default.sync();
-        app.listen(port, () => {
-            console.log(`Server started on port ${port}`);
+        app_1.app.listen(port, () => {
+            console.log(`app started on port ${port}`);
         });
     }
     catch (error) {
