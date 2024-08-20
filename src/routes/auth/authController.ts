@@ -51,7 +51,6 @@ export class AuthController extends Controller {
     const userExists = await User.findOne({
       where: { email },
     });
-
     if (userExists) {
       this.setStatus(400); // you can set the response status code manually
       return {
