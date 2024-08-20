@@ -7,17 +7,13 @@
     "outDir": "build",
     "skipLibCheck": true,
 
-    /* Module Resolution Options */
     "moduleResolution": "node",
     "baseUrl": ".",
     "esModuleInterop": true,
 
-    /* Experimental Options */
     "experimentalDecorators": true,
-    // emitDecoratorMetadata is not needed by tsoa (unless you are using Custom Middlewares)
     "types": ["tsoa"],
-    "typeRoots": ["node_modules/@types"],
-    /* Advanced Options */
+    "typeRoots": ["node_modules/@types" , "types"],
     "forceConsistentCasingInFileNames": true
   }
 }
