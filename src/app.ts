@@ -1,16 +1,39 @@
-import express from "express";
-import { setupSwagger } from "../swagger";
+import express, { json, urlencoded } from "express";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import swaggerUi from "swagger-ui-express";
 import connection from "./config/connection";
-import apiRoutes from "./routes/index";
 import "dotenv/config";
 import "./models/associations"; // Importer les associations après les modèles
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(express.json());
-setupSwagger(app);
-app.use("/api", apiRoutes);
+app.use(
+  urlencoded({
+    extended: true,
+  }),
+);
+app.use(json());
+
+const swaggerDocument = require("./swagger.json");
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.get("/swagger-json", (req, res) => {
+  const swaggerFilePath = path.join(__dirname, "./swagger.json");
+
+  // Lire le fichier JSON
+  fs.readFile(swaggerFilePath, "utf8", (err, data) => {
+    if (err) {
+      res.status(500).send("Erreur lors de la lecture du fichier Swagger JSON");
+    } else {
+      res.header("Content-Type", "application/json");
+      res.send(data);
+    }
+  });
+});
+
 const start = async (): Promise<void> => {
   try {
     await connection.sync();

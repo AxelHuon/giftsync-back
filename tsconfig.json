@@ -1,19 +1,22 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
-    "outDir": "dist",
-    "strict": true,
-    "lib": [
-      "esnext"
-    ],
-    "typeRoots": ["./src/routes/auth/authTypes.d.ts", "./node_modules/@types","./types"],
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "target": "esnext",
-    "moduleResolution": "Node"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+    /* Basic Options */
+    "incremental": true,
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "build",
+    "skipLibCheck": true,
 
+    /* Module Resolution Options */
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "esModuleInterop": true,
+
+    /* Experimental Options */
+    "experimentalDecorators": true,
+    // emitDecoratorMetadata is not needed by tsoa (unless you are using Custom Middlewares)
+
+    /* Advanced Options */
+    "forceConsistentCasingInFileNames": true
+  }
 }
