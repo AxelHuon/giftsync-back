@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import { Body, Controller, Post, Response, Route, SuccessResponse } from "tsoa";
 import AuthtokenModel from "../../models/authtoken.model";
 import User from "../../models/user.model";
-import { Error } from "../../types/Error";
 
 const bcrypt = require("bcrypt");
 
@@ -45,8 +44,8 @@ interface RefreshTokenResponse {
 export class AuthController extends Controller {
   @Post("signup")
   @SuccessResponse<RegisterUserResponse>("200", "User successfully registered")
-  @Response<Error>("400", "Email is already associated with an account")
-  @Response<Error>("500", "Error in registering user")
+  @Response("400", "Email is already associated with an account")
+  @Response("500", "Error in registering user")
   public async registerUser(@Body() body: RegisterUserRequest) {
     const { firstName, lastName, email, password } = body;
     const userExists = await User.findOne({
@@ -77,10 +76,10 @@ export class AuthController extends Controller {
 
   @Post("signin")
   @SuccessResponse<SignInUserResponse>("200", "User successfully signed in")
-  @Response<Error>("400", "Email and password are required")
-  @Response<Error>("401", "Incorrect email and password combination")
-  @Response<Error>("404", "User not found")
-  @Response<Error>("500", "Error in signIn user")
+  @Response("400", "Email and password are required")
+  @Response("401", "Incorrect email and password combination")
+  @Response("404", "User not found")
+  @Response("500", "Error in signIn user")
   public async signInUser(@Body() body: SignInUserRequest) {
     const secretKey = process.env.JWT_SECRET;
     const { email, password: passwordRequest } = body;
@@ -134,9 +133,9 @@ export class AuthController extends Controller {
 
   @Post("refresh-token")
   @SuccessResponse<RefreshTokenResponse>("200", "Tokens successfully refreshed")
-  @Response<Error>("403", "Refresh Token is required!")
-  @Response<Error>("404", "Invalid refresh token")
-  @Response<Error>("500", "Internal server error")
+  @Response("403", "Refresh Token is required!")
+  @Response("404", "Invalid refresh token")
+  @Response("500", "Internal server error")
   public async refreshToken(@Body() body: RefreshTokenRequest) {
     const { refreshToken: requestToken } = body;
 
