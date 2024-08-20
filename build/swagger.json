@@ -7,22 +7,6 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"Error": {
-				"properties": {
-					"message": {
-						"type": "string"
-					},
-					"code": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"message",
-					"code"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
 			"RegisterUserResponse": {
 				"properties": {
 					"message": {
@@ -185,30 +169,10 @@
 						}
 					},
 					"400": {
-						"description": "Email is already associated with an account",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Email is already associated with an account"
 					},
 					"500": {
-						"description": "Error in registering user",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Error in registering user"
 					}
 				},
 				"security": [],
@@ -300,56 +264,16 @@
 						}
 					},
 					"400": {
-						"description": "Email and password are required",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Email and password are required"
 					},
 					"401": {
-						"description": "Incorrect email and password combination",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Incorrect email and password combination"
 					},
 					"404": {
-						"description": "User not found",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "User not found"
 					},
 					"500": {
-						"description": "Error in signIn user",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Error in signIn user"
 					}
 				},
 				"security": [],
@@ -421,43 +345,13 @@
 						}
 					},
 					"403": {
-						"description": "Refresh Token is required!",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Refresh Token is required!"
 					},
 					"404": {
-						"description": "Invalid refresh token",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Invalid refresh token"
 					},
 					"500": {
-						"description": "Internal server error",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
-								}
-							}
-						}
+						"description": "Internal server error"
 					}
 				},
 				"security": [],
