@@ -15,7 +15,8 @@
     /* Experimental Options */
     "experimentalDecorators": true,
     // emitDecoratorMetadata is not needed by tsoa (unless you are using Custom Middlewares)
-
+    "types": ["tsoa"],
+    "typeRoots": ["node_modules/@types"],
     /* Advanced Options */
     "forceConsistentCasingInFileNames": true
   }
