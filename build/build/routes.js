@@ -18,6 +18,16 @@ const runtime_1 = require("@tsoa/runtime");
 const authController_1 = require("./../src/routes/auth/authController");
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const models = {
+    "Error": {
+        "dataType": "refObject",
+        "properties": {
+            "name": { "dataType": "string", "required": true },
+            "message": { "dataType": "string", "required": true },
+            "stack": { "dataType": "string" },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "RegisterUserResponse": {
         "dataType": "refObject",
         "properties": {
