@@ -12,7 +12,6 @@
     "esModuleInterop": true,
 
     "experimentalDecorators": true,
-    "types": ["tsoa"],
     "typeRoots": ["node_modules/@types" , "types"],
     "forceConsistentCasingInFileNames": true
   }

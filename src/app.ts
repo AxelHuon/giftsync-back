@@ -2,6 +2,7 @@ import express, { json, urlencoded } from "express";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import swaggerUi from "swagger-ui-express";
+import { RegisterRoutes } from "../build/routes";
 import connection from "./config/connection";
 import "dotenv/config";
 import "./models/associations"; // Importer les associations après les modèles
@@ -19,6 +20,7 @@ app.use(json());
 const swaggerDocument = require("./swagger.json");
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+RegisterRoutes(app);
 
 app.get("/swagger-json", (req, res) => {
   const swaggerFilePath = path.join(__dirname, "./swagger.json");
