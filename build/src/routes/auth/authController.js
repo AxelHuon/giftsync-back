@@ -31,67 +31,83 @@ let AuthController = class AuthController extends tsoa_1.Controller {
     registerUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             const { firstName, lastName, email, password } = body;
-            const userExists = yield user_model_1.default.findOne({
-                where: { email },
-            });
-            if (userExists) {
-                return errorResponse(400, {
-                    message: "Email is already associated with an account",
-                    code: "email_already_exists",
+            try {
+                const userExists = yield user_model_1.default.findOne({
+                    where: { email },
+                });
+                if (userExists) {
+                    return errorResponse(400, {
+                        message: "Email is already associated with an account",
+                        code: "email_already_exists",
+                    });
+                }
+                yield user_model_1.default.create({
+                    email,
+                    lastName,
+                    firstName,
+                    password: yield bcrypt.hash(password, 12),
+                });
+                this.setStatus(200);
+                return {
+                    message: "User successfully registered",
+                    code: "success_register",
+                };
+            }
+            catch (error) {
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
                 });
             }
-            yield user_model_1.default.create({
-                email,
-                lastName,
-                firstName,
-                password: yield bcrypt.hash(password, 12),
-            });
-            this.setStatus(200);
-            return {
-                message: "User successfully registered",
-                code: "success_register",
-            };
         });
     }
     signInUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             const secretKey = process.env.JWT_SECRET;
-            const { email, password: passwordRequest } = body;
-            if (!email || !passwordRequest) {
-                return errorResponse(400, {
-                    message: "Email and password are required",
-                    code: "email_and_password_required",
+            try {
+                const { email, password: passwordRequest } = body;
+                if (!email || !passwordRequest) {
+                    return errorResponse(400, {
+                        message: "Email and password are required",
+                        code: "email_and_password_required",
+                    });
+                }
+                const user = yield user_model_1.default.findOne({
+                    where: { email },
                 });
-            }
-            const user = yield user_model_1.default.findOne({
-                where: { email },
-            });
-            if (user) {
-                const passwordValid = bcrypt.compare(passwordRequest, user.password);
-                if (!passwordValid) {
+                if (user) {
+                    const passwordValid = bcrypt.compare(passwordRequest, user.password);
+                    if (!passwordValid) {
+                        return errorResponse(400, {
+                            message: "Incorrect email and password combination",
+                            code: "error_signIn_combination",
+                        });
+                    }
+                    const token = jsonwebtoken_1.default.sign({ id: user.id }, secretKey !== null && secretKey !== void 0 ? secretKey : "", {
+                        expiresIn: "2h",
+                    });
+                    const refreshToken = yield authtoken_model_1.default.createToken(user);
+                    this.setStatus(200);
+                    return {
+                        id: user.id,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        email: user.email,
+                        accessToken: token,
+                        refreshToken,
+                    };
+                }
+                else {
                     return errorResponse(400, {
                         message: "Incorrect email and password combination",
                         code: "error_signIn_combination",
                     });
                 }
-                const token = jsonwebtoken_1.default.sign({ id: user.id }, secretKey !== null && secretKey !== void 0 ? secretKey : "", {
-                    expiresIn: "2h",
-                });
-                const refreshToken = yield authtoken_model_1.default.createToken(user);
-                this.setStatus(200);
-                return {
-                    id: user.id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    accessToken: token,
-                    refreshToken,
-                };
             }
-            else {
-                return errorResponse(404, {
-                    message: "User not found",
-                    code: "user_not_found",
+            catch (error) {
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
                 });
             }
         });

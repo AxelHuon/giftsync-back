@@ -46,78 +46,91 @@ export class AuthController extends Controller {
   @Post("signup")
   public async registerUser(
     @Body() body: RegisterUserRequest,
-    @Res() errorResponse: TsoaResponse<400, ErrorResponse>,
+    @Res() errorResponse: TsoaResponse<400 | 500, ErrorResponse>,
   ): Promise<RegisterUserResponse> {
     const { firstName, lastName, email, password } = body;
-    const userExists = await User.findOne({
-      where: { email },
-    });
-    if (userExists) {
-      return errorResponse(400, {
-        message: "Email is already associated with an account",
-        code: "email_already_exists",
+    try {
+      const userExists = await User.findOne({
+        where: { email },
+      });
+      if (userExists) {
+        return errorResponse(400, {
+          message: "Email is already associated with an account",
+          code: "email_already_exists",
+        });
+      }
+
+      await User.create({
+        email,
+        lastName,
+        firstName,
+        password: await bcrypt.hash(password, 12),
+      });
+
+      this.setStatus(200);
+      return {
+        message: "User successfully registered",
+        code: "success_register",
+      };
+    } catch (error) {
+      return errorResponse(500, {
+        message: "Internal Server Error",
+        code: "internal_server_error",
       });
     }
-
-    await User.create({
-      email,
-      lastName,
-      firstName,
-      password: await bcrypt.hash(password, 12),
-    });
-
-    this.setStatus(200);
-    return {
-      message: "User successfully registered",
-      code: "success_register",
-    };
   }
 
   @Post("signin")
   public async signInUser(
     @Body() body: SignInUserRequest,
-    @Res() errorResponse: TsoaResponse<400 | 401 | 404 | 500, ErrorResponse>,
+    @Res() errorResponse: TsoaResponse<400 | 401 | 500, ErrorResponse>,
   ): Promise<SignInUserResponse> {
     const secretKey = process.env.JWT_SECRET;
-    const { email, password: passwordRequest } = body;
+    try {
+      const { email, password: passwordRequest } = body;
 
-    if (!email || !passwordRequest) {
-      return errorResponse(400, {
-        message: "Email and password are required",
-        code: "email_and_password_required",
+      if (!email || !passwordRequest) {
+        return errorResponse(400, {
+          message: "Email and password are required",
+          code: "email_and_password_required",
+        });
+      }
+      const user = await User.findOne({
+        where: { email },
       });
-    }
 
-    const user = await User.findOne({
-      where: { email },
-    });
+      if (user) {
+        const passwordValid = bcrypt.compare(passwordRequest, user.password);
+        if (!passwordValid) {
+          return errorResponse(400, {
+            message: "Incorrect email and password combination",
+            code: "error_signIn_combination",
+          });
+        }
+        const token = jwt.sign({ id: user.id }, secretKey ?? "", {
+          expiresIn: "2h",
+        });
+        const refreshToken = await AuthtokenModel.createToken(user);
 
-    if (user) {
-      const passwordValid = bcrypt.compare(passwordRequest, user.password);
-      if (!passwordValid) {
+        this.setStatus(200);
+        return {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          accessToken: token,
+          refreshToken,
+        };
+      } else {
         return errorResponse(400, {
           message: "Incorrect email and password combination",
           code: "error_signIn_combination",
         });
       }
-      const token = jwt.sign({ id: user.id }, secretKey ?? "", {
-        expiresIn: "2h",
-      });
-      const refreshToken = await AuthtokenModel.createToken(user);
-
-      this.setStatus(200);
-      return {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        accessToken: token,
-        refreshToken,
-      };
-    } else {
-      return errorResponse(404, {
-        message: "User not found",
-        code: "user_not_found",
+    } catch (error) {
+      return errorResponse(500, {
+        message: "Internal Server Error",
+        code: "internal_server_error",
       });
     }
   }
