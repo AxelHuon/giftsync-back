@@ -161,18 +161,10 @@ let AuthController = class AuthController extends tsoa_1.Controller {
 exports.AuthController = AuthController;
 __decorate([
     (0, tsoa_1.Post)("signup"),
-    (0, tsoa_1.SuccessResponse)("200", "User successfully registered"),
-    (0, tsoa_1.Response)("400", "Email is already associated with an account"),
-    (0, tsoa_1.Response)("500", "Error in registering user"),
     __param(0, (0, tsoa_1.Body)())
 ], AuthController.prototype, "registerUser", null);
 __decorate([
     (0, tsoa_1.Post)("signin"),
-    (0, tsoa_1.SuccessResponse)("200", "User successfully signed in"),
-    (0, tsoa_1.Response)("400", "Email and password are required"),
-    (0, tsoa_1.Response)("401", "Incorrect email and password combination"),
-    (0, tsoa_1.Response)("404", "User not found"),
-    (0, tsoa_1.Response)("500", "Error in signIn user"),
     __param(0, (0, tsoa_1.Body)())
 ], AuthController.prototype, "signInUser", null);
 __decorate([

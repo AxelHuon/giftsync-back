@@ -1,14 +1,5 @@
 import jwt from "jsonwebtoken";
-import {
-  Body,
-  Controller,
-  Post,
-  Res,
-  Response,
-  Route,
-  SuccessResponse,
-  TsoaResponse,
-} from "tsoa";
+import { Body, Controller, Post, Res, Route, TsoaResponse } from "tsoa";
 import AuthtokenModel from "../../models/authtoken.model";
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
@@ -53,9 +44,6 @@ interface RefreshTokenResponse {
 @Route("auth")
 export class AuthController extends Controller {
   @Post("signup")
-  @SuccessResponse<RegisterUserResponse>("200", "User successfully registered")
-  @Response<Error>("400", "Email is already associated with an account")
-  @Response<Error>("500", "Error in registering user")
   public async registerUser(@Body() body: RegisterUserRequest) {
     const { firstName, lastName, email, password } = body;
     const userExists = await User.findOne({
@@ -84,11 +72,6 @@ export class AuthController extends Controller {
   }
 
   @Post("signin")
-  @SuccessResponse<SignInUserResponse>("200", "User successfully signed in")
-  @Response<Error>("400", "Email and password are required")
-  @Response<Error>("401", "Incorrect email and password combination")
-  @Response<Error>("404", "User not found")
-  @Response<Error>("500", "Error in signIn user")
   public async signInUser(@Body() body: SignInUserRequest) {
     const secretKey = process.env.JWT_SECRET;
     const { email, password: passwordRequest } = body;

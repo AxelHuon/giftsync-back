@@ -18,25 +18,6 @@ const runtime_1 = require("@tsoa/runtime");
 const authController_1 = require("./../src/routes/auth/authController");
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const models = {
-    "Error": {
-        "dataType": "refObject",
-        "properties": {
-            "name": { "dataType": "string", "required": true },
-            "message": { "dataType": "string", "required": true },
-            "stack": { "dataType": "string" },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "RegisterUserResponse": {
-        "dataType": "refObject",
-        "properties": {
-            "message": { "dataType": "string", "required": true },
-            "code": { "dataType": "string", "required": true },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "RegisterUserRequest": {
         "dataType": "refObject",
         "properties": {
@@ -44,19 +25,6 @@ const models = {
             "lastName": { "dataType": "string", "required": true },
             "email": { "dataType": "string", "required": true },
             "password": { "dataType": "string", "required": true },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "SignInUserResponse": {
-        "dataType": "refObject",
-        "properties": {
-            "id": { "dataType": "string", "required": true },
-            "firstName": { "dataType": "string", "required": true },
-            "lastName": { "dataType": "string", "required": true },
-            "email": { "dataType": "string", "required": true },
-            "accessToken": { "dataType": "string", "required": true },
-            "refreshToken": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
@@ -120,7 +88,7 @@ function RegisterRoutes(app) {
                     response,
                     next,
                     validatedArgs,
-                    successStatus: 200,
+                    successStatus: undefined,
                 });
             }
             catch (err) {
@@ -145,7 +113,7 @@ function RegisterRoutes(app) {
                     response,
                     next,
                     validatedArgs,
-                    successStatus: 200,
+                    successStatus: undefined,
                 });
             }
             catch (err) {
