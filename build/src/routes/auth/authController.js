@@ -100,67 +100,60 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             }
         });
     }
-    refreshToken(body) {
+    refreshToken(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             const { refreshToken: requestToken } = body;
             if (!requestToken) {
-                this.setStatus(403);
-                return {
+                return errorResponse(403, {
                     message: "Refresh Token is required!",
                     code: "refresh_token_required",
-                };
+                });
             }
             try {
                 const refreshToken = yield authtoken_model_1.default.findOne({
                     where: { token: requestToken },
                 });
                 if (!refreshToken) {
-                    this.setStatus(404);
-                    return {
+                    return errorResponse(404, {
                         message: "Invalid refresh token",
                         code: "invalid_refresh_token",
-                    };
+                    });
                 }
                 const isExpired = yield authtoken_model_1.default.verifyAndDeleteExpiredToken(refreshToken);
                 if (isExpired) {
-                    this.setStatus(403);
-                    return {
+                    return errorResponse(403, {
                         message: "Refresh token was expired. Please make a new sign in request",
                         code: "expired_refresh_token",
-                    };
+                    });
                 }
                 const user = yield user_model_1.default.findOne({
                     where: { id: refreshToken.user },
                     attributes: { exclude: ["password"] },
                 });
-                if (user) {
-                    const newAccessToken = jsonwebtoken_1.default.sign({ id: user.id }, (_a = process.env.JWT_SECRET) !== null && _a !== void 0 ? _a : "", {
-                        expiresIn: process.env.JWT_EXPIRATION || "24h",
-                    });
-                    const newRefreshToken = yield authtoken_model_1.default.createToken(user);
-                    yield authtoken_model_1.default.destroy({ where: { id: refreshToken.id } });
-                    this.setStatus(200);
-                    return {
-                        accessToken: newAccessToken,
-                        refreshToken: newRefreshToken,
-                    };
-                }
-                else {
-                    this.setStatus(404);
-                    return {
+                if (!user) {
+                    return errorResponse(404, {
                         message: "User not found",
                         code: "user_not_found",
-                    };
+                    });
                 }
+                const newAccessToken = jsonwebtoken_1.default.sign({ id: user.id }, (_a = process.env.JWT_SECRET) !== null && _a !== void 0 ? _a : "", {
+                    expiresIn: process.env.JWT_EXPIRATION || "24h",
+                });
+                const newRefreshToken = yield authtoken_model_1.default.createToken(user);
+                yield authtoken_model_1.default.destroy({ where: { id: refreshToken.id } });
+                this.setStatus(200);
+                return {
+                    accessToken: newAccessToken,
+                    refreshToken: newRefreshToken,
+                };
             }
             catch (err) {
                 console.log("err", err);
-                this.setStatus(500);
-                return {
+                return errorResponse(500, {
                     message: "Internal server error",
                     code: "internal_server_error",
-                };
+                });
             }
         });
     }
@@ -184,11 +177,8 @@ __decorate([
 ], AuthController.prototype, "signInUser", null);
 __decorate([
     (0, tsoa_1.Post)("refresh-token"),
-    (0, tsoa_1.SuccessResponse)("200", "Tokens successfully refreshed"),
-    (0, tsoa_1.Response)("403", "Refresh Token is required!"),
-    (0, tsoa_1.Response)("404", "Invalid refresh token"),
-    (0, tsoa_1.Response)("500", "Internal server error"),
-    __param(0, (0, tsoa_1.Body)())
+    __param(0, (0, tsoa_1.Body)()),
+    __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "refreshToken", null);
 exports.AuthController = AuthController = __decorate([
     (0, tsoa_1.Route)("auth")

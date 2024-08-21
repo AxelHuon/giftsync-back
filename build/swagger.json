@@ -141,6 +141,22 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"ErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -374,90 +390,46 @@
 				"operationId": "RefreshToken",
 				"responses": {
 					"200": {
-						"description": "Tokens successfully refreshed",
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
 									"anyOf": [
 										{
-											"properties": {
-												"refreshToken": {},
-												"accessToken": {},
-												"code": {
-													"type": "string"
-												},
-												"message": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"code",
-												"message"
-											],
-											"type": "object"
+											"$ref": "#/components/schemas/RefreshTokenResponse"
 										},
-										{
-											"properties": {
-												"code": {},
-												"message": {},
-												"refreshToken": {
-													"type": "string"
-												},
-												"accessToken": {}
-											},
-											"required": [
-												"refreshToken",
-												"accessToken"
-											],
-											"type": "object"
-										}
+										{}
 									]
-								}
-							}
-						},
-						"headers": {
-							"RefreshTokenResponse": {
-								"schema": {
-									"$ref": "#/components/schemas/RefreshTokenResponse"
 								}
 							}
 						}
 					},
 					"403": {
-						"description": "Refresh Token is required!",
+						"description": "",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
+									"$ref": "#/components/schemas/ErrorResponse"
 								}
 							}
 						}
 					},
 					"404": {
-						"description": "Invalid refresh token",
+						"description": "",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
+									"$ref": "#/components/schemas/ErrorResponse"
 								}
 							}
 						}
 					},
 					"500": {
-						"description": "Internal server error",
+						"description": "",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"Example 1": {}
+									"$ref": "#/components/schemas/ErrorResponse"
 								}
 							}
 						}

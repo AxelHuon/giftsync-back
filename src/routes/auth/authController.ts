@@ -1,7 +1,17 @@
 import jwt from "jsonwebtoken";
-import { Body, Controller, Post, Response, Route, SuccessResponse } from "tsoa";
+import {
+  Body,
+  Controller,
+  Post,
+  Res,
+  Response,
+  Route,
+  SuccessResponse,
+  TsoaResponse,
+} from "tsoa";
 import AuthtokenModel from "../../models/authtoken.model";
 import User from "../../models/user.model";
+import { ErrorResponse } from "../../types/Error";
 
 const bcrypt = require("bcrypt");
 
@@ -131,18 +141,17 @@ export class AuthController extends Controller {
   }
 
   @Post("refresh-token")
-  @SuccessResponse<RefreshTokenResponse>("200", "Tokens successfully refreshed")
-  @Response<Error>("403", "Refresh Token is required!")
-  @Response<Error>("404", "Invalid refresh token")
-  @Response<Error>("500", "Internal server error")
-  public async refreshToken(@Body() body: RefreshTokenRequest) {
+  public async refreshToken(
+    @Body() body: RefreshTokenRequest,
+    @Res() errorResponse: TsoaResponse<403 | 404 | 500, ErrorResponse>,
+  ): Promise<RefreshTokenResponse | void> {
     const { refreshToken: requestToken } = body;
+
     if (!requestToken) {
-      this.setStatus(403);
-      return {
+      return errorResponse(403, {
         message: "Refresh Token is required!",
         code: "refresh_token_required",
-      };
+      });
     }
 
     try {
@@ -151,22 +160,20 @@ export class AuthController extends Controller {
       });
 
       if (!refreshToken) {
-        this.setStatus(404);
-        return {
+        return errorResponse(404, {
           message: "Invalid refresh token",
           code: "invalid_refresh_token",
-        };
+        });
       }
 
       const isExpired =
         await AuthtokenModel.verifyAndDeleteExpiredToken(refreshToken);
       if (isExpired) {
-        this.setStatus(403);
-        return {
+        return errorResponse(403, {
           message:
             "Refresh token was expired. Please make a new sign in request",
           code: "expired_refresh_token",
-        };
+        });
       }
 
       const user = await User.findOne({
@@ -174,38 +181,36 @@ export class AuthController extends Controller {
         attributes: { exclude: ["password"] },
       });
 
-      if (user) {
-        const newAccessToken = jwt.sign(
-          { id: user.id },
-          process.env.JWT_SECRET ?? "",
-          {
-            expiresIn: process.env.JWT_EXPIRATION || "24h",
-          },
-        );
-
-        const newRefreshToken = await AuthtokenModel.createToken(user);
-
-        await AuthtokenModel.destroy({ where: { id: refreshToken.id } });
-
-        this.setStatus(200);
-        return {
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-        };
-      } else {
-        this.setStatus(404);
-        return {
+      if (!user) {
+        return errorResponse(404, {
           message: "User not found",
           code: "user_not_found",
-        };
+        });
       }
+
+      const newAccessToken = jwt.sign(
+        { id: user.id },
+        process.env.JWT_SECRET ?? "",
+        {
+          expiresIn: process.env.JWT_EXPIRATION || "24h",
+        },
+      );
+
+      const newRefreshToken = await AuthtokenModel.createToken(user);
+
+      await AuthtokenModel.destroy({ where: { id: refreshToken.id } });
+
+      this.setStatus(200);
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      };
     } catch (err) {
       console.log("err", err);
-      this.setStatus(500);
-      return {
+      return errorResponse(500, {
         message: "Internal server error",
         code: "internal_server_error",
-      };
+      });
     }
   }
 }
