@@ -110,7 +110,7 @@ export class AuthController extends Controller {
   public async refreshToken(
     @Body() body: RefreshTokenRequest,
     @Res() errorResponse: TsoaResponse<403 | 404 | 500, ErrorResponse>,
-  ): Promise<RefreshTokenResponse | void> {
+  ): Promise<RefreshTokenResponse> {
     const { refreshToken: requestToken } = body;
 
     if (!requestToken) {
