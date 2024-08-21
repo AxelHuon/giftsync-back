@@ -13,23 +13,9 @@ interface RegisterUserRequest {
   password: string;
 }
 
-interface RegisterUserResponse {
-  message: string;
-  code: string;
-}
-
 interface SignInUserRequest {
   email: string;
   password: string;
-}
-
-interface SignInUserResponse {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  accessToken: string;
-  refreshToken: string;
 }
 
 interface RefreshTokenRequest {
@@ -89,10 +75,7 @@ export class AuthController extends Controller {
     });
 
     if (user) {
-      const passwordValid = await bcrypt.compare(
-        passwordRequest,
-        user.password,
-      );
+      const passwordValid = bcrypt.compare(passwordRequest, user.password);
       if (!passwordValid) {
         this.setStatus(401);
         return {

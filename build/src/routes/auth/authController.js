@@ -69,7 +69,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 where: { email },
             });
             if (user) {
-                const passwordValid = yield bcrypt.compare(passwordRequest, user.password);
+                const passwordValid = bcrypt.compare(passwordRequest, user.password);
                 if (!passwordValid) {
                     this.setStatus(401);
                     return {
