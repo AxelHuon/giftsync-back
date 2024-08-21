@@ -27,20 +27,36 @@ interface RefreshTokenResponse {
   refreshToken: string;
 }
 
+interface SignInUserResponse {
+  id: string;
+  accessToken: string;
+  refreshToken: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+interface RegisterUserResponse {
+  message: string;
+  code: string;
+}
+
 @Route("auth")
 export class AuthController extends Controller {
   @Post("signup")
-  public async registerUser(@Body() body: RegisterUserRequest) {
+  public async registerUser(
+    @Body() body: RegisterUserRequest,
+    @Res() errorResponse: TsoaResponse<400, ErrorResponse>,
+  ): Promise<RegisterUserResponse> {
     const { firstName, lastName, email, password } = body;
     const userExists = await User.findOne({
       where: { email },
     });
     if (userExists) {
-      this.setStatus(400); // you can set the response status code manually
-      return {
+      return errorResponse(400, {
         message: "Email is already associated with an account",
         code: "email_already_exists",
-      };
+      });
     }
 
     await User.create({
@@ -58,16 +74,18 @@ export class AuthController extends Controller {
   }
 
   @Post("signin")
-  public async signInUser(@Body() body: SignInUserRequest) {
+  public async signInUser(
+    @Body() body: SignInUserRequest,
+    @Res() errorResponse: TsoaResponse<400 | 401 | 404 | 500, ErrorResponse>,
+  ): Promise<SignInUserResponse> {
     const secretKey = process.env.JWT_SECRET;
     const { email, password: passwordRequest } = body;
 
     if (!email || !passwordRequest) {
-      this.setStatus(400);
-      return {
+      return errorResponse(400, {
         message: "Email and password are required",
         code: "email_and_password_required",
-      };
+      });
     }
 
     const user = await User.findOne({
@@ -77,11 +95,10 @@ export class AuthController extends Controller {
     if (user) {
       const passwordValid = bcrypt.compare(passwordRequest, user.password);
       if (!passwordValid) {
-        this.setStatus(401);
-        return {
+        return errorResponse(400, {
           message: "Incorrect email and password combination",
           code: "error_signIn_combination",
-        };
+        });
       }
       const token = jwt.sign({ id: user.id }, secretKey ?? "", {
         expiresIn: "2h",
@@ -98,11 +115,10 @@ export class AuthController extends Controller {
         refreshToken,
       };
     } else {
-      this.setStatus(404);
-      return {
+      return errorResponse(404, {
         message: "User not found",
         code: "user_not_found",
-      };
+      });
     }
   }
 

@@ -28,18 +28,17 @@ const authtoken_model_1 = __importDefault(require("../../models/authtoken.model"
 const user_model_1 = __importDefault(require("../../models/user.model"));
 const bcrypt = require("bcrypt");
 let AuthController = class AuthController extends tsoa_1.Controller {
-    registerUser(body) {
+    registerUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             const { firstName, lastName, email, password } = body;
             const userExists = yield user_model_1.default.findOne({
                 where: { email },
             });
             if (userExists) {
-                this.setStatus(400); // you can set the response status code manually
-                return {
+                return errorResponse(400, {
                     message: "Email is already associated with an account",
                     code: "email_already_exists",
-                };
+                });
             }
             yield user_model_1.default.create({
                 email,
@@ -54,16 +53,15 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             };
         });
     }
-    signInUser(body) {
+    signInUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             const secretKey = process.env.JWT_SECRET;
             const { email, password: passwordRequest } = body;
             if (!email || !passwordRequest) {
-                this.setStatus(400);
-                return {
+                return errorResponse(400, {
                     message: "Email and password are required",
                     code: "email_and_password_required",
-                };
+                });
             }
             const user = yield user_model_1.default.findOne({
                 where: { email },
@@ -71,11 +69,10 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             if (user) {
                 const passwordValid = bcrypt.compare(passwordRequest, user.password);
                 if (!passwordValid) {
-                    this.setStatus(401);
-                    return {
+                    return errorResponse(400, {
                         message: "Incorrect email and password combination",
                         code: "error_signIn_combination",
-                    };
+                    });
                 }
                 const token = jsonwebtoken_1.default.sign({ id: user.id }, secretKey !== null && secretKey !== void 0 ? secretKey : "", {
                     expiresIn: "2h",
@@ -92,11 +89,10 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 };
             }
             else {
-                this.setStatus(404);
-                return {
+                return errorResponse(404, {
                     message: "User not found",
                     code: "user_not_found",
-                };
+                });
             }
         });
     }
@@ -161,11 +157,13 @@ let AuthController = class AuthController extends tsoa_1.Controller {
 exports.AuthController = AuthController;
 __decorate([
     (0, tsoa_1.Post)("signup"),
-    __param(0, (0, tsoa_1.Body)())
+    __param(0, (0, tsoa_1.Body)()),
+    __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "registerUser", null);
 __decorate([
     (0, tsoa_1.Post)("signin"),
-    __param(0, (0, tsoa_1.Body)())
+    __param(0, (0, tsoa_1.Body)()),
+    __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "signInUser", null);
 __decorate([
     (0, tsoa_1.Post)("refresh-token"),

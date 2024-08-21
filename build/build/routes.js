@@ -18,6 +18,15 @@ const runtime_1 = require("@tsoa/runtime");
 const authController_1 = require("./../src/routes/auth/authController");
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const models = {
+    "RegisterUserResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "message": { "dataType": "string", "required": true },
+            "code": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "RegisterUserRequest": {
         "dataType": "refObject",
         "properties": {
@@ -25,6 +34,28 @@ const models = {
             "lastName": { "dataType": "string", "required": true },
             "email": { "dataType": "string", "required": true },
             "password": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ErrorResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "message": { "dataType": "string", "required": true },
+            "code": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "SignInUserResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "id": { "dataType": "string", "required": true },
+            "accessToken": { "dataType": "string", "required": true },
+            "refreshToken": { "dataType": "string", "required": true },
+            "firstName": { "dataType": "string", "required": true },
+            "lastName": { "dataType": "string", "required": true },
+            "email": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
@@ -55,15 +86,6 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ErrorResponse": {
-        "dataType": "refObject",
-        "properties": {
-            "message": { "dataType": "string", "required": true },
-            "code": { "dataType": "string", "required": true },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 };
 const templateService = new runtime_1.ExpressTemplateService(models, { "noImplicitAdditionalProperties": "throw-on-extras", "bodyCoercion": true });
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -76,6 +98,7 @@ function RegisterRoutes(app) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 body: { "in": "body", "name": "body", "required": true, "ref": "RegisterUserRequest" },
+                errorResponse: { "in": "res", "name": "400", "required": true, "ref": "ErrorResponse" },
             };
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
             let validatedArgs = [];
@@ -101,6 +124,7 @@ function RegisterRoutes(app) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 body: { "in": "body", "name": "body", "required": true, "ref": "SignInUserRequest" },
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
             };
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
             let validatedArgs = [];

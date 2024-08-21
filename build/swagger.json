@@ -7,6 +7,22 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"RegisterUserResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"RegisterUserRequest": {
 				"properties": {
 					"firstName": {
@@ -27,6 +43,54 @@
 					"lastName",
 					"email",
 					"password"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SignInUserResponse": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"accessToken": {
+						"type": "string"
+					},
+					"refreshToken": {
+						"type": "string"
+					},
+					"firstName": {
+						"type": "string"
+					},
+					"lastName": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"accessToken",
+					"refreshToken",
+					"firstName",
+					"lastName",
+					"email"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -74,22 +138,6 @@
 				],
 				"type": "object",
 				"additionalProperties": false
-			},
-			"ErrorResponse": {
-				"properties": {
-					"message": {
-						"type": "string"
-					},
-					"code": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"message",
-					"code"
-				],
-				"type": "object",
-				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -112,19 +160,17 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"properties": {
-										"code": {
-											"type": "string"
-										},
-										"message": {
-											"type": "string"
-										}
-									},
-									"required": [
-										"code",
-										"message"
-									],
-									"type": "object"
+									"$ref": "#/components/schemas/RegisterUserResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
 								}
 							}
 						}
@@ -153,60 +199,47 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"properties": {
-												"refreshToken": {},
-												"accessToken": {},
-												"email": {},
-												"lastName": {},
-												"firstName": {},
-												"id": {},
-												"code": {
-													"type": "string"
-												},
-												"message": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"code",
-												"message"
-											],
-											"type": "object"
-										},
-										{
-											"properties": {
-												"code": {},
-												"message": {},
-												"refreshToken": {
-													"type": "string"
-												},
-												"accessToken": {},
-												"email": {
-													"type": "string"
-												},
-												"lastName": {
-													"type": "string"
-												},
-												"firstName": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"refreshToken",
-												"accessToken",
-												"email",
-												"lastName",
-												"firstName",
-												"id"
-											],
-											"type": "object"
-										}
-									]
+									"$ref": "#/components/schemas/SignInUserResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
 								}
 							}
 						}
