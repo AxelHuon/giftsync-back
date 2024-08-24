@@ -82,7 +82,8 @@ const models: TsoaRoute.Models = {
     "ResetPasswordResponse": {
         "dataType": "refObject",
         "properties": {
-            "forgotPasswordToken": {"dataType":"string","required":true},
+            "message": {"dataType":"string","required":true},
+            "code": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },

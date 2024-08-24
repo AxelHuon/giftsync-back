@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Body, Controller, Post, Put, Res, Route, TsoaResponse } from "tsoa";
+import { transport } from "../../mailConfig/mailConfig";
 import AuthtokenModel from "../../models/authtoken.model";
 import AuthTokenForgotPassword from "../../models/authtokenForgotPassword.model";
 import User from "../../models/user.model";
@@ -218,10 +219,26 @@ export class AuthController extends Controller {
       const forgotPasswordToken =
         await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
-        this.setStatus(200);
-        return {
-          forgotPasswordToken,
+        const mailOptions = {
+          from: "noreplay@email.com",
+          to: user.email,
+          subject: "Forgot password",
+          html: `<p>${forgotPasswordToken}</p>`,
         };
+        transport.sendMail(mailOptions, function (err, info) {
+          if (err) {
+            return errorResponse(500, {
+              message: "Internal server error",
+              code: "internal_server_error",
+            });
+          } else {
+            this.setStatus(200);
+            return {
+              message: "Email was sent",
+              code: "email_is_sent",
+            };
+          }
+        });
       }
     } catch (err) {
       console.log("err", err);

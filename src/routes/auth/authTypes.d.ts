@@ -19,7 +19,8 @@ export interface ResetPasswordRequest {
 }
 
 export interface ResetPasswordResponse {
-  forgotPasswordToken: string;
+  message: string;
+  code: string;
 }
 
 export interface ForgotPasswordResetPasswordRequest {

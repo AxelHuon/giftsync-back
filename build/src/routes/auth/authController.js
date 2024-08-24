@@ -24,6 +24,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const tsoa_1 = require("tsoa");
+const mailConfig_1 = require("../../mailConfig/mailConfig");
 const authtoken_model_1 = __importDefault(require("../../models/authtoken.model"));
 const authtokenForgotPassword_model_1 = __importDefault(require("../../models/authtokenForgotPassword.model"));
 const user_model_1 = __importDefault(require("../../models/user.model"));
@@ -191,10 +192,27 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 }
                 const forgotPasswordToken = yield authtokenForgotPassword_model_1.default.createForgotPasswordToken(user);
                 if (forgotPasswordToken) {
-                    this.setStatus(200);
-                    return {
-                        forgotPasswordToken,
+                    const mailOptions = {
+                        from: "noreplay@email.com",
+                        to: user.email,
+                        subject: "Forgot password",
+                        html: `<p>${forgotPasswordToken}</p>`,
                     };
+                    mailConfig_1.transport.sendMail(mailOptions, function (err, info) {
+                        if (err) {
+                            return errorResponse(500, {
+                                message: "Internal server error",
+                                code: "internal_server_error",
+                            });
+                        }
+                        else {
+                            this.setStatus(200);
+                            return {
+                                message: "Email was sent",
+                                code: "email_is_sent",
+                            };
+                        }
+                    });
                 }
             }
             catch (err) {

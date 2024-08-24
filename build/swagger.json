@@ -141,12 +141,16 @@
 			},
 			"ResetPasswordResponse": {
 				"properties": {
-					"forgotPasswordToken": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
 						"type": "string"
 					}
 				},
 				"required": [
-					"forgotPasswordToken"
+					"message",
+					"code"
 				],
 				"type": "object",
 				"additionalProperties": false
