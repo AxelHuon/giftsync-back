@@ -78,7 +78,7 @@ AuthTokenForgotPassword.init(
   },
   {
     sequelize,
-    modelName: "authToken",
+    modelName: "authTokenForgotPassword",
   },
 );
 

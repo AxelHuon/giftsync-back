@@ -65,6 +65,6 @@ AuthTokenForgotPassword.init({
     },
 }, {
     sequelize: connection_1.default,
-    modelName: "authToken",
+    modelName: "authTokenForgotPassword",
 });
 exports.default = AuthTokenForgotPassword;
