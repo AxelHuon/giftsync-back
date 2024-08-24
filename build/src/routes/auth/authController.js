@@ -235,7 +235,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 const user = yield user_model_1.default.findOne({ where: { id: tokenInformation.user } });
                 if (user) {
                     user.password = yield bcrypt.hash(newPassword, 12);
-                    user.save();
+                    yield user.save();
                     this.setStatus(200);
                     return {
                         message: "test",

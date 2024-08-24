@@ -267,7 +267,7 @@ export class AuthController extends Controller {
 
       if (user) {
         user.password = await bcrypt.hash(newPassword, 12);
-        user.save();
+        await user.save();
         this.setStatus(200);
         return {
           message: "test",
