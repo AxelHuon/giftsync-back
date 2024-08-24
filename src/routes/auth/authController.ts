@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
-import { Body, Controller, Post, Res, Route, TsoaResponse } from "tsoa";
+import { Body, Controller, Post, Put, Res, Route, TsoaResponse } from "tsoa";
 import AuthtokenModel from "../../models/authtoken.model";
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
 import {
+  ForgotPasswordResetPasswordRequest,
+  ForgotPasswordResetPasswordResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
   RegisterUserRequest,
@@ -215,6 +217,44 @@ export class AuthController extends Controller {
         this.setStatus(200);
         return {
           forgotPasswordToken,
+        };
+      }
+    } catch (err) {
+      console.log("err", err);
+      return errorResponse(500, {
+        message: "Internal server error",
+        code: "internal_server_error",
+      });
+    }
+  }
+
+  @Put("forgot-password")
+  public async forgotPassword(
+    @Body() body: ForgotPasswordResetPasswordRequest,
+    @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
+  ): Promise<ForgotPasswordResetPasswordResponse> {
+    const { password, token } = body;
+
+    if (!token) {
+      return errorResponse(403, {
+        message: "No token provided",
+        code: "no_token_provided",
+      });
+    }
+    try {
+      const isExpired = AuthtokenModel.verifyAndDeleteExpiredToken(token);
+      if (isExpired) {
+        errorResponse(403, {
+          message: "Token is expired",
+          code: "expired_token",
+        });
+      } else {
+        this.setStatus(200);
+        const tokenDecoded = jwt.decode(token.token);
+        console.log(tokenDecoded);
+        return {
+          message: "success",
+          code: "token_decoded",
         };
       }
     } catch (err) {

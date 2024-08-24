@@ -22,6 +22,16 @@ export interface ResetPasswordResponse {
   forgotPasswordToken: string;
 }
 
+export interface ForgotPasswordResetPasswordRequest {
+  password: string;
+  token: any;
+}
+
+export interface ForgotPasswordResetPasswordResponse {
+  message: string;
+  code: string;
+}
+
 export interface RefreshTokenResponse {
   accessToken: string;
   refreshToken: string;

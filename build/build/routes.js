@@ -102,6 +102,24 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ForgotPasswordResetPasswordResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "message": { "dataType": "string", "required": true },
+            "code": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ForgotPasswordResetPasswordRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "password": { "dataType": "string", "required": true },
+            "token": { "dataType": "any", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 };
 const templateService = new runtime_1.ExpressTemplateService(models, { "noImplicitAdditionalProperties": "throw-on-extras", "bodyCoercion": true });
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -201,6 +219,32 @@ function RegisterRoutes(app) {
                 const controller = new authController_1.AuthController();
                 yield templateService.apiHandler({
                     methodName: 'requetsForgotPassword',
+                    controller,
+                    response,
+                    next,
+                    validatedArgs,
+                    successStatus: undefined,
+                });
+            }
+            catch (err) {
+                return next(err);
+            }
+        });
+    });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.put('/api/auth/forgot-password', ...((0, runtime_1.fetchMiddlewares)(authController_1.AuthController)), ...((0, runtime_1.fetchMiddlewares)(authController_1.AuthController.prototype.forgotPassword)), function AuthController_forgotPassword(request, response, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const args = {
+                body: { "in": "body", "name": "body", "required": true, "ref": "ForgotPasswordResetPasswordRequest" },
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+            };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            let validatedArgs = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+                const controller = new authController_1.AuthController();
+                yield templateService.apiHandler({
+                    methodName: 'forgotPassword',
                     controller,
                     response,
                     next,

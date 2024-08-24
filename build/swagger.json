@@ -162,6 +162,36 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"ForgotPasswordResetPasswordResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ForgotPasswordResetPasswordRequest": {
+				"properties": {
+					"password": {
+						"type": "string"
+					},
+					"token": {}
+				},
+				"required": [
+					"password",
+					"token"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -385,6 +415,55 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/ResetPasswordRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/forgot-password": {
+			"put": {
+				"operationId": "ForgotPassword",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForgotPasswordResetPasswordResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ForgotPasswordResetPasswordRequest"
 							}
 						}
 					}
