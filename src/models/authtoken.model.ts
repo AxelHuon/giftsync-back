@@ -65,7 +65,6 @@ export class AuthtokenModel
     if (isExpired) {
       await AuthtokenModel.destroy({ where: { id: token.id } });
     }
-
     return isExpired;
   };
 }

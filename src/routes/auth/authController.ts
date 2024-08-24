@@ -233,7 +233,7 @@ export class AuthController extends Controller {
     @Body() body: ForgotPasswordResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
   ): Promise<ForgotPasswordResetPasswordResponse> {
-    const { password, token } = body;
+    const { token } = body;
 
     if (!token) {
       return errorResponse(403, {
@@ -249,9 +249,9 @@ export class AuthController extends Controller {
           code: "expired_token",
         });
       } else {
-        this.setStatus(200);
         const tokenDecoded = jwt.decode(token.token);
         console.log(tokenDecoded);
+        this.setStatus(200);
         return {
           message: "success",
           code: "token_decoded",

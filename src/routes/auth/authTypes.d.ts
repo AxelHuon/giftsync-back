@@ -23,7 +23,6 @@ export interface ResetPasswordResponse {
 }
 
 export interface ForgotPasswordResetPasswordRequest {
-  password: string;
   token: any;
 }
 
