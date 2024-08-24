@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { Body, Controller, Post, Put, Res, Route, TsoaResponse } from "tsoa";
+import { Body, Controller, Patch, Post, Res, Route, TsoaResponse } from "tsoa";
 import AuthtokenModel from "../../models/authtoken.model";
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
@@ -228,35 +228,25 @@ export class AuthController extends Controller {
     }
   }
 
-  @Put("forgot-password")
+  @Patch("forgot-password")
   public async forgotPassword(
     @Body() body: ForgotPasswordResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
   ): Promise<ForgotPasswordResetPasswordResponse> {
     try {
       const { token } = body;
-
       if (!token) {
         return errorResponse(403, {
           message: "No token provided",
           code: "no_token_provided",
         });
       }
-      const isExpired = AuthtokenModel.verifyAndDeleteExpiredToken(token);
-      if (isExpired) {
-        errorResponse(403, {
-          message: "Token is expired",
-          code: "expired_token",
-        });
-      } else {
-        const tokenDecoded = jwt.decode(token.token);
-        console.log(tokenDecoded);
-        this.setStatus(200);
-        return {
-          message: "success",
-          code: "token_decoded",
-        };
-      }
+      console.log(token.dataValues);
+      this.setStatus(200);
+      return {
+        message: "test",
+        code: "test",
+      };
     } catch (err) {
       console.log("err", err);
       return errorResponse(500, {
