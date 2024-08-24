@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { getToken } from "../../middleware/auth.middleware";
 import User from "../../models/user.model";
-import { getToken } from "../auth/auth.middleware";
 
 /**
  * @swagger

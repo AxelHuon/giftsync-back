@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
+import { getToken } from "../../middleware/auth.middleware";
 import Room from "../../models/room.model";
 import RoomUser from "../../models/roomuser.model";
 import User from "../../models/user.model";
-import { getToken } from "../auth/auth.middleware";
 
 export const createRoom = async (req: Request, res: Response) => {
   try {

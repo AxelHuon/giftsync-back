@@ -39,9 +39,17 @@ AuthtokenModel.createToken = (user) => __awaiter(void 0, void 0, void 0, functio
     });
     return refreshToken.dataValues.token;
 });
-AuthtokenModel.verifyExpiration = (token) => {
-    return token.dataValues.expiryDate.getTime() < new Date().getTime();
-};
+AuthtokenModel.createTokenForgotPassword = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    let expiredAt = new Date();
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("600"));
+    let _token = (0, uuid_1.v4)();
+    let tokRequestForgotPassword = yield _a.create({
+        token: _token,
+        user: user.id,
+        expiryDate: expiredAt,
+    });
+    return tokRequestForgotPassword.dataValues.token;
+});
 AuthtokenModel.verifyAndDeleteExpiredToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     const isExpired = token.dataValues.expiryDate.getTime() < new Date().getTime();
     if (isExpired) {

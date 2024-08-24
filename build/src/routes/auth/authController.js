@@ -169,6 +169,42 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             }
         });
     }
+    requetsForgotPassword(body, errorResponse) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email } = body;
+            if (!email) {
+                return errorResponse(403, {
+                    message: "Email is required",
+                    code: "email_is_required",
+                });
+            }
+            try {
+                const user = yield user_model_1.default.findOne({
+                    where: { email: email },
+                });
+                if (!user) {
+                    return errorResponse(500, {
+                        message: "Internal server error",
+                        code: "internal_server_error",
+                    });
+                }
+                const forgotPasswordToken = yield authtoken_model_1.default.createTokenForgotPassword(user);
+                if (forgotPasswordToken) {
+                    this.setStatus(200);
+                    return {
+                        forgotPasswordToken,
+                    };
+                }
+            }
+            catch (err) {
+                console.log("err", err);
+                return errorResponse(500, {
+                    message: "Internal server error",
+                    code: "internal_server_error",
+                });
+            }
+        });
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -186,6 +222,11 @@ __decorate([
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "refreshToken", null);
+__decorate([
+    (0, tsoa_1.Post)("request-forgot-password"),
+    __param(0, (0, tsoa_1.Body)()),
+    __param(1, (0, tsoa_1.Res)())
+], AuthController.prototype, "requetsForgotPassword", null);
 exports.AuthController = AuthController = __decorate([
     (0, tsoa_1.Route)("auth")
 ], AuthController);

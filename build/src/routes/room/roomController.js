@@ -15,10 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteRoom = exports.deleteUserFromARoom = exports.putNameOfRoom = exports.getSingleRoom = exports.addUserToRoom = exports.createRoom = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const uuid_1 = require("uuid");
+const auth_middleware_1 = require("../../middleware/auth.middleware");
 const room_model_1 = __importDefault(require("../../models/room.model"));
 const roomuser_model_1 = __importDefault(require("../../models/roomuser.model"));
 const user_model_1 = __importDefault(require("../../models/user.model"));
-const auth_middleware_1 = require("../auth/auth.middleware");
 const createRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const token = (0, auth_middleware_1.getToken)(req.headers);

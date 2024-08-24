@@ -14,8 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRoomOfUserConnected = exports.getMe = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const auth_middleware_1 = require("../../middleware/auth.middleware");
 const user_model_1 = __importDefault(require("../../models/user.model"));
-const auth_middleware_1 = require("../auth/auth.middleware");
 /**
  * @swagger
  * /api/user/me:

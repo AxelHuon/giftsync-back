@@ -45,8 +45,16 @@ export class AuthtokenModel
     return refreshToken.dataValues.token;
   };
 
-  static verifyExpiration = (token: AuthtokenModel): boolean => {
-    return token.dataValues.expiryDate.getTime() < new Date().getTime();
+  static createTokenForgotPassword = async (user: User): Promise<string> => {
+    let expiredAt = new Date();
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("600"));
+    let _token = uuidv4();
+    let tokRequestForgotPassword = await AuthtokenModel.create({
+      token: _token,
+      user: user.id,
+      expiryDate: expiredAt,
+    });
+    return tokRequestForgotPassword.dataValues.token;
   };
 
   static verifyAndDeleteExpiredToken = async (
@@ -54,7 +62,6 @@ export class AuthtokenModel
   ): Promise<boolean> => {
     const isExpired =
       token.dataValues.expiryDate.getTime() < new Date().getTime();
-
     if (isExpired) {
       await AuthtokenModel.destroy({ where: { id: token.id } });
     }

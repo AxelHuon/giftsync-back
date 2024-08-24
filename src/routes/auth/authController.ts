@@ -3,43 +3,18 @@ import { Body, Controller, Post, Res, Route, TsoaResponse } from "tsoa";
 import AuthtokenModel from "../../models/authtoken.model";
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
+import {
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+  RegisterUserRequest,
+  RegisterUserResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  SignInUserRequest,
+  SignInUserResponse,
+} from "./authTypes";
 
 const bcrypt = require("bcrypt");
-
-interface RegisterUserRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
-
-interface SignInUserRequest {
-  email: string;
-  password: string;
-}
-
-interface RefreshTokenRequest {
-  refreshToken: string;
-}
-
-interface RefreshTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
-interface SignInUserResponse {
-  id: string;
-  accessToken: string;
-  refreshToken: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-interface RegisterUserResponse {
-  message: string;
-  code: string;
-}
 
 @Route("auth")
 export class AuthController extends Controller {
@@ -200,6 +175,48 @@ export class AuthController extends Controller {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       };
+    } catch (err) {
+      console.log("err", err);
+      return errorResponse(500, {
+        message: "Internal server error",
+        code: "internal_server_error",
+      });
+    }
+  }
+
+  @Post("request-forgot-password")
+  public async requetsForgotPassword(
+    @Body() body: ResetPasswordRequest,
+    @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
+  ): Promise<ResetPasswordResponse> {
+    const { email } = body;
+
+    if (!email) {
+      return errorResponse(403, {
+        message: "Email is required",
+        code: "email_is_required",
+      });
+    }
+
+    try {
+      const user = await User.findOne({
+        where: { email: email },
+      });
+
+      if (!user) {
+        return errorResponse(500, {
+          message: "Internal server error",
+          code: "internal_server_error",
+        });
+      }
+      const forgotPasswordToken =
+        await AuthtokenModel.createTokenForgotPassword(user);
+      if (forgotPasswordToken) {
+        this.setStatus(200);
+        return {
+          forgotPasswordToken,
+        };
+      }
     } catch (err) {
       console.log("err", err);
       return errorResponse(500, {
