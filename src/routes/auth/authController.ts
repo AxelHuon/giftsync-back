@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
+import process from "node:process";
 import { Body, Controller, Post, Put, Res, Route, TsoaResponse } from "tsoa";
-import { transport } from "../../mailConfig/mailConfig";
 import AuthtokenModel from "../../models/authtoken.model";
 import AuthTokenForgotPassword from "../../models/authtokenForgotPassword.model";
 import User from "../../models/user.model";
@@ -19,6 +19,16 @@ import {
 } from "./authTypes";
 
 const bcrypt = require("bcrypt");
+
+var nodemailer = require("nodemailer");
+var transport = nodemailer.createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "4e70b92624ec02",
+    pass: process.env.PASSWORD_MAIL_TRAP,
+  },
+});
 
 @Route("auth")
 export class AuthController extends Controller {
@@ -220,25 +230,24 @@ export class AuthController extends Controller {
         await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
         const mailOptions = {
-          from: "noreplay@email.com",
+          from: "noreply@email.com",
           to: user.email,
           subject: "Forgot password",
           html: `<p>${forgotPasswordToken}</p>`,
         };
-        transport.sendMail(mailOptions, function (err, info) {
-          if (err) {
-            return errorResponse(500, {
-              message: "Internal server error",
-              code: "internal_server_error",
-            });
-          } else {
-            this.setStatus(200);
-            return {
-              message: "Email was sent",
-              code: "email_is_sent",
-            };
-          }
-        });
+        try {
+          const sendMail = await transport.sendMail(mailOptions);
+          this.setStatus(200);
+          return {
+            message: "Email Sent",
+            code: "email_sent",
+          };
+        } catch (error) {
+          return errorResponse(500, {
+            message: "Internal server error",
+            code: "internal_server_error",
+          });
+        }
       }
     } catch (err) {
       console.log("err", err);

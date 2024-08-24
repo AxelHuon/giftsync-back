@@ -23,12 +23,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const node_process_1 = __importDefault(require("node:process"));
 const tsoa_1 = require("tsoa");
-const mailConfig_1 = require("../../mailConfig/mailConfig");
 const authtoken_model_1 = __importDefault(require("../../models/authtoken.model"));
 const authtokenForgotPassword_model_1 = __importDefault(require("../../models/authtokenForgotPassword.model"));
 const user_model_1 = __importDefault(require("../../models/user.model"));
 const bcrypt = require("bcrypt");
+var nodemailer = require("nodemailer");
+var transport = nodemailer.createTransport({
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
+    auth: {
+        user: "4e70b92624ec02",
+        pass: node_process_1.default.env.PASSWORD_MAIL_TRAP,
+    },
+});
 let AuthController = class AuthController extends tsoa_1.Controller {
     registerUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -65,7 +74,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
     }
     signInUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
-            const secretKey = process.env.JWT_SECRET;
+            const secretKey = node_process_1.default.env.JWT_SECRET;
             try {
                 const { email, password: passwordRequest } = body;
                 if (!email || !passwordRequest) {
@@ -151,8 +160,8 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         code: "user_not_found",
                     });
                 }
-                const newAccessToken = jsonwebtoken_1.default.sign({ id: user.id }, (_a = process.env.JWT_SECRET) !== null && _a !== void 0 ? _a : "", {
-                    expiresIn: process.env.JWT_EXPIRATION || "24h",
+                const newAccessToken = jsonwebtoken_1.default.sign({ id: user.id }, (_a = node_process_1.default.env.JWT_SECRET) !== null && _a !== void 0 ? _a : "", {
+                    expiresIn: node_process_1.default.env.JWT_EXPIRATION || "24h",
                 });
                 const newRefreshToken = yield authtoken_model_1.default.createToken(user);
                 yield authtoken_model_1.default.destroy({ where: { id: refreshToken.id } });
@@ -193,26 +202,25 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 const forgotPasswordToken = yield authtokenForgotPassword_model_1.default.createForgotPasswordToken(user);
                 if (forgotPasswordToken) {
                     const mailOptions = {
-                        from: "noreplay@email.com",
+                        from: "noreply@email.com",
                         to: user.email,
                         subject: "Forgot password",
                         html: `<p>${forgotPasswordToken}</p>`,
                     };
-                    mailConfig_1.transport.sendMail(mailOptions, function (err, info) {
-                        if (err) {
-                            return errorResponse(500, {
-                                message: "Internal server error",
-                                code: "internal_server_error",
-                            });
-                        }
-                        else {
-                            this.setStatus(200);
-                            return {
-                                message: "Email was sent",
-                                code: "email_is_sent",
-                            };
-                        }
-                    });
+                    try {
+                        const sendMail = yield transport.sendMail(mailOptions);
+                        this.setStatus(200);
+                        return {
+                            message: "Email Sent",
+                            code: "email_sent",
+                        };
+                    }
+                    catch (error) {
+                        return errorResponse(500, {
+                            message: "Internal server error",
+                            code: "internal_server_error",
+                        });
+                    }
                 }
             }
             catch (err) {
