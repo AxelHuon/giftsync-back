@@ -233,15 +233,15 @@ export class AuthController extends Controller {
     @Body() body: ForgotPasswordResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
   ): Promise<ForgotPasswordResetPasswordResponse> {
-    const { token } = body;
-
-    if (!token) {
-      return errorResponse(403, {
-        message: "No token provided",
-        code: "no_token_provided",
-      });
-    }
     try {
+      const { token } = body;
+
+      if (!token) {
+        return errorResponse(403, {
+          message: "No token provided",
+          code: "no_token_provided",
+        });
+      }
       const isExpired = AuthtokenModel.verifyAndDeleteExpiredToken(token);
       if (isExpired) {
         errorResponse(403, {
