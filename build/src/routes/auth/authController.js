@@ -77,7 +77,9 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                     where: { email },
                 });
                 if (user) {
-                    const passwordValid = bcrypt.compare(passwordRequest, user.password);
+                    console.log(passwordRequest);
+                    console.log(user.password);
+                    const passwordValid = bcrypt.compare(passwordRequest, user.dataValues.password);
                     if (!passwordValid) {
                         return errorResponse(400, {
                             message: "Incorrect email and password combination",

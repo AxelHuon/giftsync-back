@@ -77,6 +77,9 @@ export class AuthController extends Controller {
       });
 
       if (user) {
+        console.log(passwordRequest);
+        console.log(user.password);
+
         const passwordValid = bcrypt.compare(
           passwordRequest,
           user.dataValues.password,
