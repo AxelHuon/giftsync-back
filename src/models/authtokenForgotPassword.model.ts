@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import sequelize from "../config/connection";
 import User from "./user.model";
 
-export interface AuthTokenAttributes {
+export interface AuthTokenForgotPasswordAttributes {
   id?: string;
   user: string;
   token: string;
@@ -11,12 +11,15 @@ export interface AuthTokenAttributes {
 }
 
 // Optional fields for creation
-interface AuthTokenCreationAttributes
-  extends Optional<AuthTokenAttributes, "id"> {}
+interface AuthTokenForgotPasswordCreationAttributes
+  extends Optional<AuthTokenForgotPasswordAttributes, "id"> {}
 
-export class AuthtokenModel
-  extends Model<AuthTokenAttributes, AuthTokenCreationAttributes>
-  implements AuthTokenAttributes
+export class AuthTokenForgotPassword
+  extends Model<
+    AuthTokenForgotPasswordAttributes,
+    AuthTokenForgotPasswordCreationAttributes
+  >
+  implements AuthTokenForgotPasswordAttributes
 {
   declare id: string;
   declare user: string;
@@ -24,20 +27,16 @@ export class AuthtokenModel
   declare expiryDate: Date;
 
   static associate(models: any) {
-    AuthtokenModel.belongsTo(models.User, {
+    AuthTokenForgotPassword.belongsTo(models.User, {
       foreignKey: "user",
       as: "user_id",
     });
   }
-
-  static createToken = async (user: User): Promise<string> => {
+  static createForgotPasswordToken = async (user: User): Promise<string> => {
     let expiredAt = new Date();
-    expiredAt.setSeconds(
-      expiredAt.getSeconds() +
-        parseInt(process.env.JWT_REFRESH_EXPIRATION || "0"),
-    );
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("600"));
     let _token = uuidv4();
-    let refreshToken = await AuthtokenModel.create({
+    let refreshToken = await AuthTokenForgotPassword.create({
       token: _token,
       user: user.id,
       expiryDate: expiredAt,
@@ -45,19 +44,19 @@ export class AuthtokenModel
     return refreshToken.dataValues.token;
   };
 
-  static verifyAndDeleteExpiredToken = async (
-    token: AuthtokenModel,
+  static verifyAndDeleteExpiredTokenForgotPassword = async (
+    token: AuthTokenForgotPassword,
   ): Promise<boolean> => {
     const isExpired =
       token.dataValues.expiryDate.getTime() < new Date().getTime();
     if (isExpired) {
-      await AuthtokenModel.destroy({ where: { id: token.id } });
+      await AuthTokenForgotPassword.destroy({ where: { id: token.id } });
     }
     return isExpired;
   };
 }
 
-AuthtokenModel.init(
+AuthTokenForgotPassword.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -83,4 +82,4 @@ AuthtokenModel.init(
   },
 );
 
-export default AuthtokenModel;
+export default AuthTokenForgotPassword;

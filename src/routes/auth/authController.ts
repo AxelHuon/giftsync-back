@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
-import { Body, Controller, Patch, Post, Res, Route, TsoaResponse } from "tsoa";
+import { Body, Controller, Post, Put, Res, Route, TsoaResponse } from "tsoa";
 import AuthtokenModel from "../../models/authtoken.model";
+import AuthTokenForgotPassword from "../../models/authtokenForgotPassword.model";
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
 import {
@@ -212,7 +213,7 @@ export class AuthController extends Controller {
         });
       }
       const forgotPasswordToken =
-        await AuthtokenModel.createTokenForgotPassword(user);
+        await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
         this.setStatus(200);
         return {
@@ -228,13 +229,19 @@ export class AuthController extends Controller {
     }
   }
 
-  @Patch("forgot-password")
+  @Put("forgot-password")
   public async forgotPassword(
     @Body() body: ForgotPasswordResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
   ): Promise<ForgotPasswordResetPasswordResponse> {
     try {
-      const { token } = body;
+      const { token, newPassword } = body;
+      if (!newPassword) {
+        return errorResponse(403, {
+          message: "Password is required!",
+          code: "password_required",
+        });
+      }
       if (!token) {
         return errorResponse(403, {
           message: "No token provided",
@@ -242,32 +249,36 @@ export class AuthController extends Controller {
         });
       }
 
-      const tokenInformation = await AuthtokenModel.findOne({
+      const tokenInformation = await AuthTokenForgotPassword.findOne({
         where: { token: token },
       });
 
       const isExpired =
-        await AuthtokenModel.verifyAndDeleteExpiredToken(tokenInformation);
+        await AuthTokenForgotPassword.verifyAndDeleteExpiredTokenForgotPassword(
+          tokenInformation,
+        );
       if (isExpired) {
         return errorResponse(403, {
-          message:
-            "Refresh token was expired. Please make a new sign in request",
-          code: "expired_refresh_token",
+          message: "Token was expired. Please make a new sign in request",
+          code: "token_refresh_token",
         });
       }
-
       const user = await User.findOne({ where: { id: tokenInformation.user } });
 
       if (user) {
-        console.log(user);
+        user.password = await bcrypt.hash(newPassword, 12);
+        user.save();
+        this.setStatus(200);
+        return {
+          message: "test",
+          code: "test",
+        };
       } else {
-        console.log("pas de user");
+        return errorResponse(403, {
+          message: "No User found",
+          code: "no_user_found",
+        });
       }
-      this.setStatus(200);
-      return {
-        message: "test",
-        code: "test",
-      };
     } catch (err) {
       console.log("err", err);
       return errorResponse(500, {
