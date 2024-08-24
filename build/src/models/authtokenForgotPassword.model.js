@@ -13,11 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthtokenModel = void 0;
+exports.AuthTokenForgotPassword = void 0;
 const sequelize_1 = require("sequelize");
 const uuid_1 = require("uuid");
 const connection_1 = __importDefault(require("../config/connection"));
-class AuthtokenModel extends sequelize_1.Model {
+class AuthTokenForgotPassword extends sequelize_1.Model {
     static associate(models) {
         _a.belongsTo(models.User, {
             foreignKey: "user",
@@ -25,12 +25,11 @@ class AuthtokenModel extends sequelize_1.Model {
         });
     }
 }
-exports.AuthtokenModel = AuthtokenModel;
-_a = AuthtokenModel;
-AuthtokenModel.createToken = (user) => __awaiter(void 0, void 0, void 0, function* () {
+exports.AuthTokenForgotPassword = AuthTokenForgotPassword;
+_a = AuthTokenForgotPassword;
+AuthTokenForgotPassword.createForgotPasswordToken = (user) => __awaiter(void 0, void 0, void 0, function* () {
     let expiredAt = new Date();
-    expiredAt.setSeconds(expiredAt.getSeconds() +
-        parseInt(process.env.JWT_REFRESH_EXPIRATION || "0"));
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("600"));
     let _token = (0, uuid_1.v4)();
     let refreshToken = yield _a.create({
         token: _token,
@@ -39,14 +38,14 @@ AuthtokenModel.createToken = (user) => __awaiter(void 0, void 0, void 0, functio
     });
     return refreshToken.dataValues.token;
 });
-AuthtokenModel.verifyAndDeleteExpiredToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
+AuthTokenForgotPassword.verifyAndDeleteExpiredTokenForgotPassword = (token) => __awaiter(void 0, void 0, void 0, function* () {
     const isExpired = token.dataValues.expiryDate.getTime() < new Date().getTime();
     if (isExpired) {
         yield _a.destroy({ where: { id: token.id } });
     }
     return isExpired;
 });
-AuthtokenModel.init({
+AuthTokenForgotPassword.init({
     id: {
         type: sequelize_1.DataTypes.UUID,
         defaultValue: sequelize_1.DataTypes.UUIDV4,
@@ -68,4 +67,4 @@ AuthtokenModel.init({
     sequelize: connection_1.default,
     modelName: "authToken",
 });
-exports.default = AuthtokenModel;
+exports.default = AuthTokenForgotPassword;

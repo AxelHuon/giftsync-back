@@ -25,6 +25,7 @@ exports.AuthController = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const tsoa_1 = require("tsoa");
 const authtoken_model_1 = __importDefault(require("../../models/authtoken.model"));
+const authtokenForgotPassword_model_1 = __importDefault(require("../../models/authtokenForgotPassword.model"));
 const user_model_1 = __importDefault(require("../../models/user.model"));
 const bcrypt = require("bcrypt");
 let AuthController = class AuthController extends tsoa_1.Controller {
@@ -188,7 +189,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         code: "internal_server_error",
                     });
                 }
-                const forgotPasswordToken = yield authtoken_model_1.default.createTokenForgotPassword(user);
+                const forgotPasswordToken = yield authtokenForgotPassword_model_1.default.createForgotPasswordToken(user);
                 if (forgotPasswordToken) {
                     this.setStatus(200);
                     return {
@@ -208,35 +209,45 @@ let AuthController = class AuthController extends tsoa_1.Controller {
     forgotPassword(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { token } = body;
+                const { token, newPassword } = body;
+                if (!newPassword) {
+                    return errorResponse(403, {
+                        message: "Password is required!",
+                        code: "password_required",
+                    });
+                }
                 if (!token) {
                     return errorResponse(403, {
                         message: "No token provided",
                         code: "no_token_provided",
                     });
                 }
-                const tokenInformation = yield authtoken_model_1.default.findOne({
+                const tokenInformation = yield authtokenForgotPassword_model_1.default.findOne({
                     where: { token: token },
                 });
-                const isExpired = yield authtoken_model_1.default.verifyAndDeleteExpiredToken(tokenInformation);
+                const isExpired = yield authtokenForgotPassword_model_1.default.verifyAndDeleteExpiredTokenForgotPassword(tokenInformation);
                 if (isExpired) {
                     return errorResponse(403, {
-                        message: "Refresh token was expired. Please make a new sign in request",
-                        code: "expired_refresh_token",
+                        message: "Token was expired. Please make a new sign in request",
+                        code: "token_refresh_token",
                     });
                 }
                 const user = yield user_model_1.default.findOne({ where: { id: tokenInformation.user } });
                 if (user) {
-                    console.log(user);
+                    user.password = yield bcrypt.hash(newPassword, 12);
+                    user.save();
+                    this.setStatus(200);
+                    return {
+                        message: "test",
+                        code: "test",
+                    };
                 }
                 else {
-                    console.log("pas de user");
+                    return errorResponse(403, {
+                        message: "No User found",
+                        code: "no_user_found",
+                    });
                 }
-                this.setStatus(200);
-                return {
-                    message: "test",
-                    code: "test",
-                };
             }
             catch (err) {
                 console.log("err", err);
@@ -270,7 +281,7 @@ __decorate([
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "requetsForgotPassword", null);
 __decorate([
-    (0, tsoa_1.Patch)("forgot-password"),
+    (0, tsoa_1.Put)("forgot-password"),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "forgotPassword", null);

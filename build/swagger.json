@@ -183,10 +183,14 @@
 				"properties": {
 					"token": {
 						"type": "string"
+					},
+					"newPassword": {
+						"type": "string"
 					}
 				},
 				"required": [
-					"token"
+					"token",
+					"newPassword"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -420,7 +424,7 @@
 			}
 		},
 		"/auth/forgot-password": {
-			"patch": {
+			"put": {
 				"operationId": "ForgotPassword",
 				"responses": {
 					"200": {

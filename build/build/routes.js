@@ -115,6 +115,7 @@ const models = {
         "dataType": "refObject",
         "properties": {
             "token": { "dataType": "string", "required": true },
+            "newPassword": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
@@ -231,7 +232,7 @@ function RegisterRoutes(app) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.patch('/api/auth/forgot-password', ...((0, runtime_1.fetchMiddlewares)(authController_1.AuthController)), ...((0, runtime_1.fetchMiddlewares)(authController_1.AuthController.prototype.forgotPassword)), function AuthController_forgotPassword(request, response, next) {
+    app.put('/api/auth/forgot-password', ...((0, runtime_1.fetchMiddlewares)(authController_1.AuthController)), ...((0, runtime_1.fetchMiddlewares)(authController_1.AuthController.prototype.forgotPassword)), function AuthController_forgotPassword(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 body: { "in": "body", "name": "body", "required": true, "ref": "ForgotPasswordResetPasswordRequest" },
