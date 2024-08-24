@@ -84,6 +84,9 @@ export class AuthController extends Controller {
           passwordRequest,
           user.dataValues.password,
         );
+
+        console.log(passwordValid);
+
         if (!passwordValid) {
           return errorResponse(400, {
             message: "Incorrect email and password combination",
