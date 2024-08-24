@@ -241,7 +241,6 @@ export class AuthController extends Controller {
           code: "no_token_provided",
         });
       }
-      console.log(token.dataValues);
       this.setStatus(200);
       return {
         message: "test",
