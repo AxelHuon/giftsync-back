@@ -66,7 +66,6 @@ export class AuthController extends Controller {
     const secretKey = process.env.JWT_SECRET;
     try {
       const { email, password: passwordRequest } = body;
-
       if (!email || !passwordRequest) {
         return errorResponse(400, {
           message: "Email and password are required",
@@ -78,7 +77,10 @@ export class AuthController extends Controller {
       });
 
       if (user) {
-        const passwordValid = bcrypt.compare(passwordRequest, user.password);
+        const passwordValid = bcrypt.compare(
+          passwordRequest,
+          user.dataValues.password,
+        );
         if (!passwordValid) {
           return errorResponse(400, {
             message: "Incorrect email and password combination",
