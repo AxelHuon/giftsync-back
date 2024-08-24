@@ -215,8 +215,19 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         code: "no_token_provided",
                     });
                 }
-                const jwtTokenDecoded = jsonwebtoken_1.default.decode(token);
-                console.log(jwtTokenDecoded);
+                const foundTokenRequestRefreshPassword = yield authtoken_model_1.default.findOne({
+                    where: { token: token },
+                });
+                const isExpired = yield authtoken_model_1.default.verifyAndDeleteExpiredToken(foundTokenRequestRefreshPassword);
+                if (isExpired) {
+                    return errorResponse(403, {
+                        message: "Refresh token was expired. Please make a new sign in request",
+                        code: "expired_refresh_token",
+                    });
+                }
+                else {
+                    console.log(foundTokenRequestRefreshPassword);
+                }
                 this.setStatus(200);
                 return {
                     message: "test",

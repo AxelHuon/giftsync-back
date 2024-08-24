@@ -241,8 +241,23 @@ export class AuthController extends Controller {
           code: "no_token_provided",
         });
       }
-      const jwtTokenDecoded = jwt.decode(token);
-      console.log(jwtTokenDecoded);
+
+      const foundTokenRequestRefreshPassword = await AuthtokenModel.findOne({
+        where: { token: token },
+      });
+
+      const isExpired = await AuthtokenModel.verifyAndDeleteExpiredToken(
+        foundTokenRequestRefreshPassword,
+      );
+      if (isExpired) {
+        return errorResponse(403, {
+          message:
+            "Refresh token was expired. Please make a new sign in request",
+          code: "expired_refresh_token",
+        });
+      } else {
+        console.log(foundTokenRequestRefreshPassword);
+      }
       this.setStatus(200);
       return {
         message: "test",
