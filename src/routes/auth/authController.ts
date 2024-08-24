@@ -242,21 +242,26 @@ export class AuthController extends Controller {
         });
       }
 
-      const foundTokenRequestRefreshPassword = await AuthtokenModel.findOne({
+      const tokenInformation = await AuthtokenModel.findOne({
         where: { token: token },
       });
 
-      const isExpired = await AuthtokenModel.verifyAndDeleteExpiredToken(
-        foundTokenRequestRefreshPassword,
-      );
+      const isExpired =
+        await AuthtokenModel.verifyAndDeleteExpiredToken(tokenInformation);
       if (isExpired) {
         return errorResponse(403, {
           message:
             "Refresh token was expired. Please make a new sign in request",
           code: "expired_refresh_token",
         });
+      }
+
+      const user = await User.findOne({ where: { id: tokenInformation.user } });
+
+      if (user) {
+        console.log(user);
       } else {
-        console.log(foundTokenRequestRefreshPassword);
+        console.log("pas de user");
       }
       this.setStatus(200);
       return {

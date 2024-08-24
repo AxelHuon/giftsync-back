@@ -215,18 +215,22 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         code: "no_token_provided",
                     });
                 }
-                const foundTokenRequestRefreshPassword = yield authtoken_model_1.default.findOne({
+                const tokenInformation = yield authtoken_model_1.default.findOne({
                     where: { token: token },
                 });
-                const isExpired = yield authtoken_model_1.default.verifyAndDeleteExpiredToken(foundTokenRequestRefreshPassword);
+                const isExpired = yield authtoken_model_1.default.verifyAndDeleteExpiredToken(tokenInformation);
                 if (isExpired) {
                     return errorResponse(403, {
                         message: "Refresh token was expired. Please make a new sign in request",
                         code: "expired_refresh_token",
                     });
                 }
+                const user = yield user_model_1.default.findOne({ where: { id: tokenInformation.user } });
+                if (user) {
+                    console.log(user);
+                }
                 else {
-                    console.log(foundTokenRequestRefreshPassword);
+                    console.log("pas de user");
                 }
                 this.setStatus(200);
                 return {
