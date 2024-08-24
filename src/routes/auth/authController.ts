@@ -243,6 +243,7 @@ export class AuthController extends Controller {
             code: "email_sent",
           };
         } catch (error) {
+          console.log(error);
           return errorResponse(500, {
             message: "Internal server error",
             code: "internal_server_error",
@@ -250,7 +251,6 @@ export class AuthController extends Controller {
         }
       }
     } catch (err) {
-      console.log("err", err);
       return errorResponse(500, {
         message: "Internal server error",
         code: "internal_server_error",
