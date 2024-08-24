@@ -181,13 +181,11 @@
 			},
 			"ForgotPasswordResetPasswordRequest": {
 				"properties": {
-					"password": {
+					"token": {
 						"type": "string"
-					},
-					"token": {}
+					}
 				},
 				"required": [
-					"password",
 					"token"
 				],
 				"type": "object",
@@ -422,7 +420,7 @@
 			}
 		},
 		"/auth/forgot-password": {
-			"put": {
+			"patch": {
 				"operationId": "ForgotPassword",
 				"responses": {
 					"200": {

@@ -241,6 +241,8 @@ export class AuthController extends Controller {
           code: "no_token_provided",
         });
       }
+      const jwtTokenDecoded = jwt.decode(token);
+      console.log(jwtTokenDecoded);
       this.setStatus(200);
       return {
         message: "test",

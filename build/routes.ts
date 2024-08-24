@@ -107,8 +107,7 @@ const models: TsoaRoute.Models = {
     "ForgotPasswordResetPasswordRequest": {
         "dataType": "refObject",
         "properties": {
-            "password": {"dataType":"string","required":true},
-            "token": {"dataType":"any","required":true},
+            "token": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
@@ -254,7 +253,7 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.put('/api/auth/forgot-password',
+        app.patch('/api/auth/forgot-password',
             ...(fetchMiddlewares<RequestHandler>(AuthController)),
             ...(fetchMiddlewares<RequestHandler>(AuthController.prototype.forgotPassword)),
 

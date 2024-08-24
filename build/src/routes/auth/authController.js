@@ -207,30 +207,21 @@ let AuthController = class AuthController extends tsoa_1.Controller {
     }
     forgotPassword(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { password, token } = body;
-            if (!token) {
-                return errorResponse(403, {
-                    message: "No token provided",
-                    code: "no_token_provided",
-                });
-            }
             try {
-                const isExpired = authtoken_model_1.default.verifyAndDeleteExpiredToken(token);
-                if (isExpired) {
-                    errorResponse(403, {
-                        message: "Token is expired",
-                        code: "expired_token",
+                const { token } = body;
+                if (!token) {
+                    return errorResponse(403, {
+                        message: "No token provided",
+                        code: "no_token_provided",
                     });
                 }
-                else {
-                    this.setStatus(200);
-                    const tokenDecoded = jsonwebtoken_1.default.decode(token.token);
-                    console.log(tokenDecoded);
-                    return {
-                        message: "success",
-                        code: "token_decoded",
-                    };
-                }
+                const jwtTokenDecoded = jsonwebtoken_1.default.decode(token);
+                console.log(jwtTokenDecoded);
+                this.setStatus(200);
+                return {
+                    message: "test",
+                    code: "test",
+                };
             }
             catch (err) {
                 console.log("err", err);
@@ -264,7 +255,7 @@ __decorate([
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "requetsForgotPassword", null);
 __decorate([
-    (0, tsoa_1.Put)("forgot-password"),
+    (0, tsoa_1.Patch)("forgot-password"),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "forgotPassword", null);
