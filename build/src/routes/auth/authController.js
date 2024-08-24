@@ -216,6 +216,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         };
                     }
                     catch (error) {
+                        console.log(error);
                         return errorResponse(500, {
                             message: "Internal server error",
                             code: "internal_server_error",
@@ -224,7 +225,6 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 }
             }
             catch (err) {
-                console.log("err", err);
                 return errorResponse(500, {
                     message: "Internal server error",
                     code: "internal_server_error",
