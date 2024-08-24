@@ -264,14 +264,13 @@ export class AuthController extends Controller {
         });
       }
       const user = await User.findOne({ where: { id: tokenInformation.user } });
-
       if (user) {
         user.password = await bcrypt.hash(newPassword, 12);
         await user.save();
         this.setStatus(200);
         return {
-          message: "test",
-          code: "test",
+          message: "Password changed successfully",
+          code: "password_changed",
         };
       } else {
         return errorResponse(403, {

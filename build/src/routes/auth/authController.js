@@ -238,8 +238,8 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                     yield user.save();
                     this.setStatus(200);
                     return {
-                        message: "test",
-                        code: "test",
+                        message: "Password changed successfully",
+                        code: "password_changed",
                     };
                 }
                 else {
