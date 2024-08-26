@@ -9,8 +9,6 @@ function apiKeyMiddleware(req, res, next) {
             .json({ message: "API key missing", code: "api_key_is_mandatory" });
     }
     const validApiKey = process.env.API_KEY;
-    console.log(validApiKey);
-    console.log(apiKey);
     if (apiKey !== validApiKey) {
         return res.status(403).json({ message: "Invalid API key" });
     }

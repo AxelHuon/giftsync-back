@@ -1,3 +1,4 @@
+import cors from "cors";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import swaggerUi from "swagger-ui-express";
@@ -9,6 +10,7 @@ import "./models/associations"; // Importer les associations après les modèles
 const port = process.env.PORT || 3001;
 
 const swaggerDocument = require("../swagger.json");
+app.use(cors());
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
