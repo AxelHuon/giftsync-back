@@ -27,8 +27,9 @@ exports.app = void 0;
 const express_1 = __importStar(require("express"));
 const routes_1 = require("../build/routes");
 const apikey_middleware_1 = require("./middleware/apikey.middleware");
+const cors = require("cors");
 exports.app = (0, express_1.default)();
-exports.app.use(apikey_middleware_1.apiKeyMiddleware, (0, express_1.urlencoded)({
+exports.app.use(cors(), apikey_middleware_1.apiKeyMiddleware, (0, express_1.urlencoded)({
     extended: true,
 }));
 exports.app.use((0, express_1.json)());
