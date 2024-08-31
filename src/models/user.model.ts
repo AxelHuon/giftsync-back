@@ -9,8 +9,8 @@ export type UserAttributes = {
   lastName: string;
   email: string;
   password: string;
+  birthDay: string;
   createdAt?: string;
-  birthDay?: string;
   updatedAt?: string;
 };
 type UserCreationAttributes = Optional<UserAttributes, "id">;
@@ -22,8 +22,8 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
   declare lastName: string;
   declare email: string;
   declare password: string;
+  declare birthDay: string;
   declare createdAt?: string;
-  declare birthDay?: string;
   declare updatedAt?: string;
   declare getRooms: HasManyGetAssociationsMixin<Room[]>;
 }

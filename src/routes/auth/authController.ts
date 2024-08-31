@@ -39,7 +39,7 @@ export class AuthController extends Controller {
           code: "email_already_exists",
         });
       }
-      
+
       await User.create({
         email,
         lastName,
@@ -47,7 +47,7 @@ export class AuthController extends Controller {
         birthDay,
         password: await bcrypt.hash(password, 12),
       });
-
+      
       this.setStatus(200);
       return {
         message: "User successfully registered",
