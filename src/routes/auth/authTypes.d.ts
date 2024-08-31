@@ -2,6 +2,9 @@ export interface RegisterUserRequest {
   firstName: string;
   lastName: string;
   email: string;
+  /*
+  * @minLength 8
+  * */
   password: string;
   birthDay: string;
 }
