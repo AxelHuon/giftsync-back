@@ -21,9 +21,6 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
   declare firstName: string;
   declare lastName: string;
   declare email: string;
-  /**
-   * @minLength 8 at least 1 category is required
-   */
   declare password: string;
   declare birthDay: string;
   declare createdAt?: string;

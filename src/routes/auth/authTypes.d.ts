@@ -1,11 +1,14 @@
-export interface RegisterUserRequest {
+import {IsString, MinLength} from "class-validator";
+
+export class RegisterUserRequest {
   firstName: string;
   lastName: string;
   email: string;
-  /**
-   * @minLength 8 at least 1 category is required
-   */
+
+  @IsString()
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password: string;
+
   birthDay: string;
 }
 
