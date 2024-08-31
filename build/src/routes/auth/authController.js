@@ -34,7 +34,17 @@ const bcrypt = require("bcrypt");
 let AuthController = class AuthController extends tsoa_1.Controller {
     registerUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield (0, class_validator_1.validateOrReject)(body);
+            try {
+                yield (0, class_validator_1.validateOrReject)(body);
+                console.log("Validation succeed");
+            }
+            catch (error) {
+                console.log(error);
+                return errorResponse(500, {
+                    message: "Bad request",
+                    code: "bad_request",
+                });
+            }
             const { firstName, lastName, email, password, birthDay } = body;
             try {
                 const userExists = yield user_model_1.default.findOne({

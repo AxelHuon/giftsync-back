@@ -30,7 +30,16 @@ export class AuthController extends Controller {
     @Body() body: RegisterUserRequest,
     @Res() errorResponse: TsoaResponse<400 | 500, ErrorResponse>,
   ): Promise<RegisterUserResponse> {
-    await validateOrReject(body);
+    try {
+      await validateOrReject(body);
+      console.log("Validation succeed");
+    }catch (error) {
+      console.log(error)
+      return errorResponse(500, {
+        message: "Bad request",
+        code: "bad_request",
+      });
+    }
     const { firstName, lastName, email, password,birthDay } = body;
     try {
       const userExists = await User.findOne({
