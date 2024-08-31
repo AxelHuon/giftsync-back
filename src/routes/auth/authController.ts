@@ -1,3 +1,4 @@
+import {validateOrReject} from "class-validator";
 import jwt from "jsonwebtoken";
 import process from "node:process";
 import {Body, Controller, Post, Put, Res, Route, TsoaResponse} from "tsoa";
@@ -21,6 +22,7 @@ import {
 
 const bcrypt = require("bcrypt");
 
+
 @Route("auth")
 export class AuthController extends Controller {
   @Post("signup")
@@ -28,6 +30,7 @@ export class AuthController extends Controller {
     @Body() body: RegisterUserRequest,
     @Res() errorResponse: TsoaResponse<400 | 500, ErrorResponse>,
   ): Promise<RegisterUserResponse> {
+    await validateOrReject(body);
     const { firstName, lastName, email, password,birthDay } = body;
     try {
       const userExists = await User.findOne({
@@ -47,7 +50,7 @@ export class AuthController extends Controller {
         birthDay,
         password: await bcrypt.hash(password, 12),
       });
-      
+
       this.setStatus(200);
       return {
         message: "User successfully registered",

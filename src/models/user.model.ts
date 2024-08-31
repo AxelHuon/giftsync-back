@@ -1,4 +1,3 @@
-import {IsString, MinLength} from "class-validator";
 import {DataTypes, HasManyGetAssociationsMixin, Model, Optional,} from "sequelize";
 import {v4 as uuidv4} from "uuid";
 import connection from "../config/connection";
@@ -22,8 +21,6 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
   declare firstName: string;
   declare lastName: string;
   declare email: string;
-  @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
   declare password: string;
   declare birthDay: string;
   declare createdAt?: string;
