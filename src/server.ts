@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import swaggerUi from "swagger-ui-express";
-import { app } from "./app";
+import {app} from "./app";
 import connection from "./config/connection";
 import "dotenv/config";
 import "./models/associations"; // Importer les associations après les modèles
@@ -27,7 +27,7 @@ app.get("/swagger-json", (req, res) => {
 
 const start = async (): Promise<void> => {
   try {
-    await connection.sync();
+    await connection.sync({force:true});
     app.listen(port, () => {
       console.log(`app started on port ${port}`);
     });

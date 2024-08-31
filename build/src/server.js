@@ -59,7 +59,7 @@ app_1.app.get("/swagger-json", (req, res) => {
 });
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield connection_1.default.sync();
+        yield connection_1.default.sync({ force: true });
         app_1.app.listen(port, () => {
             console.log(`app started on port ${port}`);
         });
