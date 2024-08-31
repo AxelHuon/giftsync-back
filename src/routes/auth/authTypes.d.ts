@@ -2,9 +2,9 @@ export interface RegisterUserRequest {
   firstName: string;
   lastName: string;
   email: string;
-  /*
-  * @minLength 8 min length of password is 8
-  * */
+  /**
+   * @minLength 8 at least 1 category is required
+   */
   password: string;
   birthDay: string;
 }

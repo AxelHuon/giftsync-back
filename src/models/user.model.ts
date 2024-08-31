@@ -21,6 +21,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
   declare firstName: string;
   declare lastName: string;
   declare email: string;
+
   declare password: string;
   declare birthDay: string;
   declare createdAt?: string;
