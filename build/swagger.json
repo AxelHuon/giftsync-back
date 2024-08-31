@@ -36,6 +36,9 @@
 					},
 					"password": {
 						"type": "string"
+					},
+					"birthDay": {
+						"type": "string"
 					}
 				},
 				"required": [
@@ -203,7 +206,7 @@
 		"securitySchemes": {}
 	},
 	"info": {
-		"title": "noel-listing-back-end",
+		"title": "gift-sync-back-end",
 		"version": "1.0.0",
 		"license": {
 			"name": "ISC"

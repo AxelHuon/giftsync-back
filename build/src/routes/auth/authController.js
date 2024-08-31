@@ -25,23 +25,15 @@ exports.AuthController = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_process_1 = __importDefault(require("node:process"));
 const tsoa_1 = require("tsoa");
+const mailConfig_1 = require("../../mailConfig/mailConfig");
 const authtoken_model_1 = __importDefault(require("../../models/authtoken.model"));
 const authtokenForgotPassword_model_1 = __importDefault(require("../../models/authtokenForgotPassword.model"));
 const user_model_1 = __importDefault(require("../../models/user.model"));
 const bcrypt = require("bcrypt");
-var nodemailer = require("nodemailer");
-var transport = nodemailer.createTransport({
-    host: "sandbox.smtp.mailtrap.io",
-    port: 2525,
-    auth: {
-        user: "4e70b92624ec02",
-        pass: node_process_1.default.env.PASSWORD_MAIL_TRAP,
-    },
-});
 let AuthController = class AuthController extends tsoa_1.Controller {
     registerUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { firstName, lastName, email, password } = body;
+            const { firstName, lastName, email, password, birthDay } = body;
             try {
                 const userExists = yield user_model_1.default.findOne({
                     where: { email },
@@ -56,6 +48,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                     email,
                     lastName,
                     firstName,
+                    birthDay,
                     password: yield bcrypt.hash(password, 12),
                 });
                 this.setStatus(200);
@@ -208,7 +201,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         html: `<p>${forgotPasswordToken}</p>`,
                     };
                     try {
-                        const sendMail = yield transport.sendMail(mailOptions);
+                        yield mailConfig_1.transport.sendMail(mailOptions);
                         this.setStatus(200);
                         return {
                             message: "Email Sent",

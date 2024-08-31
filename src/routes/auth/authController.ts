@@ -1,10 +1,11 @@
 import jwt from "jsonwebtoken";
 import process from "node:process";
-import { Body, Controller, Post, Put, Res, Route, TsoaResponse } from "tsoa";
+import {Body, Controller, Post, Put, Res, Route, TsoaResponse} from "tsoa";
+import {transport} from "../../mailConfig/mailConfig";
 import AuthtokenModel from "../../models/authtoken.model";
 import AuthTokenForgotPassword from "../../models/authtokenForgotPassword.model";
 import User from "../../models/user.model";
-import { ErrorResponse } from "../../types/Error";
+import {ErrorResponse} from "../../types/Error";
 import {
   ForgotPasswordResetPasswordRequest,
   ForgotPasswordResetPasswordResponse,
@@ -20,16 +21,6 @@ import {
 
 const bcrypt = require("bcrypt");
 
-var nodemailer = require("nodemailer");
-var transport = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
-  auth: {
-    user: "4e70b92624ec02",
-    pass: process.env.PASSWORD_MAIL_TRAP,
-  },
-});
-
 @Route("auth")
 export class AuthController extends Controller {
   @Post("signup")
@@ -37,7 +28,7 @@ export class AuthController extends Controller {
     @Body() body: RegisterUserRequest,
     @Res() errorResponse: TsoaResponse<400 | 500, ErrorResponse>,
   ): Promise<RegisterUserResponse> {
-    const { firstName, lastName, email, password } = body;
+    const { firstName, lastName, email, password,birthDay } = body;
     try {
       const userExists = await User.findOne({
         where: { email },
@@ -48,11 +39,12 @@ export class AuthController extends Controller {
           code: "email_already_exists",
         });
       }
-
+      
       await User.create({
         email,
         lastName,
         firstName,
+        birthDay,
         password: await bcrypt.hash(password, 12),
       });
 
@@ -92,7 +84,6 @@ export class AuthController extends Controller {
           passwordRequest,
           user.dataValues.password,
         );
-
         if (!passwordValid) {
           return errorResponse(400, {
             message: "Incorrect email and password combination",
@@ -236,7 +227,7 @@ export class AuthController extends Controller {
           html: `<p>${forgotPasswordToken}</p>`,
         };
         try {
-          const sendMail = await transport.sendMail(mailOptions);
+          await transport.sendMail(mailOptions);
           this.setStatus(200);
           return {
             message: "Email Sent",
