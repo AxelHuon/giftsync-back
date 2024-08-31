@@ -3,7 +3,7 @@ export interface RegisterUserRequest {
   lastName: string;
   email: string;
   password: string;
-  birthDay?: string;
+  birthDay: string;
 }
 
 export interface SignInUserRequest {

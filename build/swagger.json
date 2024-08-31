@@ -45,7 +45,8 @@
 					"firstName",
 					"lastName",
 					"email",
-					"password"
+					"password",
+					"birthDay"
 				],
 				"type": "object",
 				"additionalProperties": false

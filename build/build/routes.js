@@ -34,7 +34,7 @@ const models = {
             "lastName": { "dataType": "string", "required": true },
             "email": { "dataType": "string", "required": true },
             "password": { "dataType": "string", "required": true },
-            "birthDay": { "dataType": "string" },
+            "birthDay": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
