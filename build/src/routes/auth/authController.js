@@ -22,6 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
+const class_validator_1 = require("class-validator");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_process_1 = __importDefault(require("node:process"));
 const tsoa_1 = require("tsoa");
@@ -33,6 +34,7 @@ const bcrypt = require("bcrypt");
 let AuthController = class AuthController extends tsoa_1.Controller {
     registerUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield (0, class_validator_1.validateOrReject)(body);
             const { firstName, lastName, email, password, birthDay } = body;
             try {
                 const userExists = yield user_model_1.default.findOne({
