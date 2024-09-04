@@ -1,7 +1,12 @@
-import process from "node:process";
 
-var nodemailer = require("nodemailer");
-export const transport = nodemailer.createTransport({
+const nodemailer = require("nodemailer");
+require('dotenv').config();
+
+const password = process.env.PASSWORD_MAIL_TRAP;
+if (!password) {
+  throw new Error("PASSWORD_MAIL_TRAP is required");
+}
+const transport = nodemailer.createTransport({
   host: "sandbox.smtp.mailtrap.io",
   port: 2525,
   auth: {
@@ -9,3 +14,6 @@ export const transport = nodemailer.createTransport({
     pass: process.env.PASSWORD_MAIL_TRAP,
   },
 });
+
+
+export default transport;

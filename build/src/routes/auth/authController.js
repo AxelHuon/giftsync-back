@@ -22,34 +22,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
-const class_validator_1 = require("class-validator");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_process_1 = __importDefault(require("node:process"));
 const tsoa_1 = require("tsoa");
-const mailConfig_1 = require("../../mailConfig/mailConfig");
+const mailConfig_1 = __importDefault(require("../../mailConfig/mailConfig"));
+const validation_middleware_1 = require("../../middleware/validation.middleware");
 const authtoken_model_1 = __importDefault(require("../../models/authtoken.model"));
 const authtokenForgotPassword_model_1 = __importDefault(require("../../models/authtokenForgotPassword.model"));
 const user_model_1 = __importDefault(require("../../models/user.model"));
+const authClass_1 = require("./authClass");
 const bcrypt = require("bcrypt");
 let AuthController = class AuthController extends tsoa_1.Controller {
     registerUser(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield (0, class_validator_1.validateOrReject)(body);
-                console.log("Validation succeed");
-            }
-            catch (error) {
-                console.log(error);
-                return errorResponse(500, {
-                    message: "Bad request",
-                    code: "bad_request",
-                });
-            }
-            const { firstName, lastName, email, password, birthDay } = body;
-            try {
-                const userExists = yield user_model_1.default.findOne({
-                    where: { email },
-                });
+                const { firstName, lastName, email, password, birthDay } = body;
+                const userExists = yield user_model_1.default.findOne({ where: { email } });
                 if (userExists) {
                     return errorResponse(400, {
                         message: "Email is already associated with an account",
@@ -110,6 +98,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         lastName: user.lastName,
                         email: user.email,
                         accessToken: token,
+                        birthDay: user.birthDay,
                         refreshToken,
                     };
                 }
@@ -199,6 +188,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                     where: { email: email },
                 });
                 if (!user) {
+                    console.log("No user found");
                     return errorResponse(500, {
                         message: "Internal server error",
                         code: "internal_server_error",
@@ -213,7 +203,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                         html: `<p>${forgotPasswordToken}</p>`,
                     };
                     try {
-                        yield mailConfig_1.transport.sendMail(mailOptions);
+                        yield mailConfig_1.default.sendMail(mailOptions);
                         this.setStatus(200);
                         return {
                             message: "Email Sent",
@@ -230,6 +220,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 }
             }
             catch (err) {
+                console.log(err);
                 return errorResponse(500, {
                     message: "Internal server error",
                     code: "internal_server_error",
@@ -293,26 +284,31 @@ let AuthController = class AuthController extends tsoa_1.Controller {
 exports.AuthController = AuthController;
 __decorate([
     (0, tsoa_1.Post)("signup"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.RegisterUserDTO)]),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "registerUser", null);
 __decorate([
     (0, tsoa_1.Post)("signin"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.SignInUserRequest)]),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "signInUser", null);
 __decorate([
     (0, tsoa_1.Post)("refresh-token"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.RefreshTokenRequest)]),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "refreshToken", null);
 __decorate([
     (0, tsoa_1.Post)("request-forgot-password"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.ResetPasswordRequest)]),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "requetsForgotPassword", null);
 __decorate([
     (0, tsoa_1.Put)("forgot-password"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.ForgotPasswordResetPasswordRequest)]),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "forgotPassword", null);

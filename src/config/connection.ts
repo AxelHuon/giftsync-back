@@ -1,7 +1,8 @@
-import {Sequelize} from "sequelize";
+import { Sequelize } from "sequelize";
 
+require("dotenv").config();
 
-const connection = new Sequelize(process.env.DATABASE_URL || "postgresql://root:root@localhost:5432/noel_listing", {
+const connection = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   protocol: "postgres",
   logging: false,
@@ -9,4 +10,3 @@ const connection = new Sequelize(process.env.DATABASE_URL || "postgresql://root:
 
 // Export de la connexion
 export default connection;
-

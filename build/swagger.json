@@ -7,45 +7,35 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"RegisterUserResponse": {
+			"UserClassGetMeResponse": {
 				"properties": {
-					"message": {
+					"id": {
 						"type": "string"
 					},
-					"code": {
+					"email": {
 						"type": "string"
-					}
-				},
-				"required": [
-					"message",
-					"code"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"RegisterUserRequest": {
-				"properties": {
+					},
 					"firstName": {
 						"type": "string"
 					},
 					"lastName": {
 						"type": "string"
 					},
-					"email": {
-						"type": "string"
-					},
-					"password": {
-						"type": "string"
-					},
 					"birthDay": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
 						"type": "string"
 					}
 				},
 				"required": [
+					"id",
+					"email",
 					"firstName",
 					"lastName",
-					"email",
-					"password",
 					"birthDay"
 				],
 				"type": "object",
@@ -67,6 +57,50 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"RegisterUserResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RegisterUserDTO": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"firstName": {
+						"type": "string"
+					},
+					"lastName": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"birthDay": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"firstName",
+					"lastName",
+					"password",
+					"birthDay"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"SignInUserResponse": {
 				"properties": {
 					"id": {
@@ -84,6 +118,9 @@
 					"lastName": {
 						"type": "string"
 					},
+					"birthDay": {
+						"type": "string"
+					},
 					"email": {
 						"type": "string"
 					}
@@ -94,6 +131,7 @@
 					"refreshToken",
 					"firstName",
 					"lastName",
+					"birthDay",
 					"email"
 				],
 				"type": "object",
@@ -215,6 +253,55 @@
 		"contact": {}
 	},
 	"paths": {
+		"/user/get-me": {
+			"get": {
+				"operationId": "GetMe",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserClassGetMeResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": []
+			}
+		},
 		"/auth/signup": {
 			"post": {
 				"operationId": "RegisterUser",
@@ -230,6 +317,16 @@
 						}
 					},
 					"400": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
 						"description": "",
 						"content": {
 							"application/json": {
@@ -257,7 +354,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/RegisterUserRequest"
+								"$ref": "#/components/schemas/RegisterUserDTO"
 							}
 						}
 					}

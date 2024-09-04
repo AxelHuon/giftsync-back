@@ -41,10 +41,13 @@ const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const app_1 = require("./app");
 const connection_1 = __importDefault(require("./config/connection"));
 require("dotenv/config");
-require("./models/associations"); // Importer les associations après les modèles
-const port = process.env.PORT || 3001;
-const swaggerDocument = require("../swagger.json");
-app_1.app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
+require("./models/associations");
+require("dotenv").config();
+const port = process.env.PORT;
+/*const swaggerDocument = require("../swagger.json");*/
+app_1.app.use("/api-docs", swagger_ui_express_1.default.serve, (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    return res.send(swagger_ui_express_1.default.generateHTML(yield Promise.resolve().then(() => __importStar(require("../build/swagger.json")))));
+}));
 app_1.app.get("/swagger-json", (req, res) => {
     const swaggerFilePath = path.join(__dirname, "../swagger.json");
     fs.readFile(swaggerFilePath, "utf8", (err, data) => {
@@ -59,7 +62,7 @@ app_1.app.get("/swagger-json", (req, res) => {
 });
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield connection_1.default.sync({ force: true });
+        yield connection_1.default.sync();
         app_1.app.listen(port, () => {
             console.log(`app started on port ${port}`);
         });

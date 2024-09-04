@@ -1,46 +1,53 @@
 import jwt from "jsonwebtoken";
 import process from "node:process";
-import {Body, Controller, Post, Put, Res, Route, TsoaResponse} from "tsoa";
-import {transport} from "../../mailConfig/mailConfig";
+import {
+  Body,
+  Controller,
+  Middlewares,
+  Post,
+  Put,
+  Res,
+  Route,
+  TsoaResponse,
+} from "tsoa";
+import transport from "../../mailConfig/mailConfig";
+import { validationBodyMiddleware } from "../../middleware/validation.middleware";
 import AuthtokenModel from "../../models/authtoken.model";
 import AuthTokenForgotPassword from "../../models/authtokenForgotPassword.model";
 import User from "../../models/user.model";
-import {ErrorResponse} from "../../types/Error";
+import { ErrorResponse } from "../../types/Error";
 import {
   ForgotPasswordResetPasswordRequest,
   ForgotPasswordResetPasswordResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
-  RegisterUserRequest,
+  RegisterUserDTO,
   RegisterUserResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
   SignInUserRequest,
   SignInUserResponse,
-} from "./authTypes";
+} from "./authClass";
 
 const bcrypt = require("bcrypt");
-
 
 @Route("auth")
 export class AuthController extends Controller {
   @Post("signup")
+  @Middlewares([validationBodyMiddleware(RegisterUserDTO)])
   public async registerUser(
-    @Body() body: RegisterUserRequest,
-    @Res() errorResponse: TsoaResponse<400 | 500, ErrorResponse>,
+    @Body() body: RegisterUserDTO,
+    @Res() errorResponse: TsoaResponse<400 | 422 | 500, ErrorResponse>,
   ): Promise<RegisterUserResponse> {
-    const { firstName, lastName, email, password,birthDay } = body;
     try {
-      const userExists = await User.findOne({
-        where: { email },
-      });
+      const { firstName, lastName, email, password, birthDay } = body;
+      const userExists = await User.findOne({ where: { email } });
       if (userExists) {
         return errorResponse(400, {
           message: "Email is already associated with an account",
           code: "email_already_exists",
         });
       }
-
       await User.create({
         email,
         lastName,
@@ -63,6 +70,7 @@ export class AuthController extends Controller {
   }
 
   @Post("signin")
+  @Middlewares([validationBodyMiddleware(SignInUserRequest)])
   public async signInUser(
     @Body() body: SignInUserRequest,
     @Res() errorResponse: TsoaResponse<400 | 401 | 500, ErrorResponse>,
@@ -103,6 +111,7 @@ export class AuthController extends Controller {
           lastName: user.lastName,
           email: user.email,
           accessToken: token,
+          birthDay: user.birthDay,
           refreshToken,
         };
       } else {
@@ -120,6 +129,7 @@ export class AuthController extends Controller {
   }
 
   @Post("refresh-token")
+  @Middlewares([validationBodyMiddleware(RefreshTokenRequest)])
   public async refreshToken(
     @Body() body: RefreshTokenRequest,
     @Res() errorResponse: TsoaResponse<403 | 404 | 500, ErrorResponse>,
@@ -194,6 +204,7 @@ export class AuthController extends Controller {
   }
 
   @Post("request-forgot-password")
+  @Middlewares([validationBodyMiddleware(ResetPasswordRequest)])
   public async requetsForgotPassword(
     @Body() body: ResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
@@ -213,6 +224,7 @@ export class AuthController extends Controller {
       });
 
       if (!user) {
+        console.log("No user found");
         return errorResponse(500, {
           message: "Internal server error",
           code: "internal_server_error",
@@ -243,6 +255,7 @@ export class AuthController extends Controller {
         }
       }
     } catch (err) {
+      console.log(err);
       return errorResponse(500, {
         message: "Internal server error",
         code: "internal_server_error",
@@ -251,6 +264,7 @@ export class AuthController extends Controller {
   }
 
   @Put("forgot-password")
+  @Middlewares([validationBodyMiddleware(ForgotPasswordResetPasswordRequest)])
   public async forgotPassword(
     @Body() body: ForgotPasswordResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
