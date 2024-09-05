@@ -73,7 +73,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"RegisterUserDTO": {
+			"RegisterUserRequest": {
 				"properties": {
 					"email": {
 						"type": "string"
@@ -181,6 +181,34 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ForgotPasswordResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ForgotPasswordRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ResetPasswordResponse": {
 				"properties": {
 					"message": {
@@ -198,34 +226,6 @@
 				"additionalProperties": false
 			},
 			"ResetPasswordRequest": {
-				"properties": {
-					"email": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"email"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ForgotPasswordResetPasswordResponse": {
-				"properties": {
-					"message": {
-						"type": "string"
-					},
-					"code": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"message",
-					"code"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ForgotPasswordResetPasswordRequest": {
 				"properties": {
 					"token": {
 						"type": "string"
@@ -360,7 +360,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/RegisterUserDTO"
+								"$ref": "#/components/schemas/RegisterUserRequest"
 							}
 						}
 					}
@@ -491,9 +491,61 @@
 				}
 			}
 		},
-		"/auth/request-forgot-password": {
+		"/auth/forgot-password": {
 			"post": {
-				"operationId": "RequetsForgotPassword",
+				"operationId": "ForgotPassword",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForgotPasswordResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ForgotPasswordRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/reset-password": {
+			"put": {
+				"operationId": "ResetPassword",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -537,58 +589,6 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/ResetPasswordRequest"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/auth/forgot-password": {
-			"put": {
-				"operationId": "ForgotPassword",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ForgotPasswordResetPasswordResponse"
-								}
-							}
-						}
-					},
-					"403": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								}
-							}
-						}
-					},
-					"500": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Auth"
-				],
-				"security": [],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/ForgotPasswordResetPasswordRequest"
 							}
 						}
 					}

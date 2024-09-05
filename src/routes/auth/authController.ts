@@ -207,7 +207,7 @@ export class AuthController extends Controller {
 
   @Post("forgot-password")
   @Middlewares([validationBodyMiddleware(ForgotPasswordRequest)])
-  public async requetsForgotPassword(
+  public async forgotPassword(
     @Body() body: ForgotPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
   ): Promise<ForgotPasswordResponse> {
@@ -267,7 +267,7 @@ export class AuthController extends Controller {
 
   @Put("reset-password")
   @Middlewares([validationBodyMiddleware(ResetPasswordRequest)])
-  public async forgotPassword(
+  public async resetPassword(
     @Body() body: ResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
   ): Promise<ResetPasswordResponse> {

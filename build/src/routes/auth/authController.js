@@ -174,7 +174,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             }
         });
     }
-    requetsForgotPassword(body, errorResponse) {
+    forgotPassword(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email } = body;
             if (!email) {
@@ -228,7 +228,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
             }
         });
     }
-    forgotPassword(body, errorResponse) {
+    resetPassword(body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { token, newPassword } = body;
@@ -284,7 +284,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
 exports.AuthController = AuthController;
 __decorate([
     (0, tsoa_1.Post)("signup"),
-    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.RegisterUserDTO)]),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.RegisterUserRequest)]),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "registerUser", null);
@@ -301,17 +301,17 @@ __decorate([
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "refreshToken", null);
 __decorate([
-    (0, tsoa_1.Post)("request-forgot-password"),
-    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.ResetPasswordRequest)]),
-    __param(0, (0, tsoa_1.Body)()),
-    __param(1, (0, tsoa_1.Res)())
-], AuthController.prototype, "requetsForgotPassword", null);
-__decorate([
-    (0, tsoa_1.Put)("forgot-password"),
-    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.ForgotPasswordResetPasswordRequest)]),
+    (0, tsoa_1.Post)("forgot-password"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.ForgotPasswordRequest)]),
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "forgotPassword", null);
+__decorate([
+    (0, tsoa_1.Put)("reset-password"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(authClass_1.ResetPasswordRequest)]),
+    __param(0, (0, tsoa_1.Body)()),
+    __param(1, (0, tsoa_1.Res)())
+], AuthController.prototype, "resetPassword", null);
 exports.AuthController = AuthController = __decorate([
     (0, tsoa_1.Tags)("Auth"),
     (0, tsoa_1.Route)("auth")

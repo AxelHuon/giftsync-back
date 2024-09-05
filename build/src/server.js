@@ -44,7 +44,6 @@ require("dotenv/config");
 require("./models/associations");
 require("dotenv").config();
 const port = process.env.PORT;
-/*const swaggerDocument = require("../swagger.json");*/
 app_1.app.use("/api-docs", swagger_ui_express_1.default.serve, (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.send(swagger_ui_express_1.default.generateHTML(yield Promise.resolve().then(() => __importStar(require("../build/swagger.json")))));
 }));

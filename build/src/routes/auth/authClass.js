@@ -6,37 +6,40 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ForgotPasswordResetPasswordRequest = exports.ResetPasswordRequest = exports.RefreshTokenRequest = exports.SignInUserRequest = exports.RegisterUserDTO = void 0;
+exports.ResetPasswordRequest = exports.ForgotPasswordRequest = exports.RefreshTokenRequest = exports.SignInUserRequest = exports.RegisterUserRequest = void 0;
 const class_validator_1 = require("class-validator");
-class RegisterUserDTO {
+class RegisterUserRequest {
 }
-exports.RegisterUserDTO = RegisterUserDTO;
+exports.RegisterUserRequest = RegisterUserRequest;
 __decorate([
-    (0, class_validator_1.IsEmail)({}, { message: 'Invalid email format' })
-], RegisterUserDTO.prototype, "email", void 0);
+    (0, class_validator_1.IsEmail)({}, { message: "Invalid email format" })
+], RegisterUserRequest.prototype, "email", void 0);
 __decorate([
-    (0, class_validator_1.IsString)({ message: 'First name must be a string' }),
-    (0, class_validator_1.Matches)(/^[a-zA-Z]+$/, { message: 'First name must contain only letters' })
-], RegisterUserDTO.prototype, "firstName", void 0);
+    (0, class_validator_1.IsString)({ message: "First name must be a string" }),
+    (0, class_validator_1.Matches)(/^[a-zA-Z]+$/, { message: "First name must contain only letters" }),
+    (0, class_validator_1.MaxLength)(50, { message: "First name must be at most 50 characters long" })
+], RegisterUserRequest.prototype, "firstName", void 0);
 __decorate([
-    (0, class_validator_1.IsString)({ message: 'Last name must be a string' }),
-    (0, class_validator_1.Matches)(/^[a-zA-Z]+$/, { message: 'Last name must contain only letters' })
-], RegisterUserDTO.prototype, "lastName", void 0);
+    (0, class_validator_1.IsString)({ message: "Last name must be a string" }),
+    (0, class_validator_1.MaxLength)(50, { message: "Last name must be at most 50 characters long" }),
+    (0, class_validator_1.Matches)(/^[a-zA-Z]+$/, { message: "Last name must contain only letters" })
+], RegisterUserRequest.prototype, "lastName", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(8, { message: 'Password must be at least 8 characters long' }),
+    (0, class_validator_1.MinLength)(8, { message: "Password must be at least 8 characters long" }),
+    (0, class_validator_1.MaxLength)(50, { message: "Password must be at most 50 characters long" }),
     (0, class_validator_1.Matches)(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
-        message: 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character',
+        message: "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character",
     })
-], RegisterUserDTO.prototype, "password", void 0);
+], RegisterUserRequest.prototype, "password", void 0);
 __decorate([
-    (0, class_validator_1.IsDateString)({}, { message: 'Invalid date format for birthDay' })
-], RegisterUserDTO.prototype, "birthDay", void 0);
+    (0, class_validator_1.IsDateString)({}, { message: "Invalid date format for birthDay" })
+], RegisterUserRequest.prototype, "birthDay", void 0);
 class SignInUserRequest {
 }
 exports.SignInUserRequest = SignInUserRequest;
 __decorate([
-    (0, class_validator_1.IsEmail)({}, { message: 'Invalid email format' })
+    (0, class_validator_1.IsEmail)({}, { message: "Invalid email format" })
 ], SignInUserRequest.prototype, "email", void 0);
 __decorate([
     (0, class_validator_1.IsString)()
@@ -47,22 +50,22 @@ exports.RefreshTokenRequest = RefreshTokenRequest;
 __decorate([
     (0, class_validator_1.IsString)()
 ], RefreshTokenRequest.prototype, "refreshToken", void 0);
+class ForgotPasswordRequest {
+}
+exports.ForgotPasswordRequest = ForgotPasswordRequest;
+__decorate([
+    (0, class_validator_1.IsEmail)({}, { message: "Invalid email format" })
+], ForgotPasswordRequest.prototype, "email", void 0);
 class ResetPasswordRequest {
 }
 exports.ResetPasswordRequest = ResetPasswordRequest;
 __decorate([
-    (0, class_validator_1.IsEmail)({}, { message: 'Invalid email format' })
-], ResetPasswordRequest.prototype, "email", void 0);
-class ForgotPasswordResetPasswordRequest {
-}
-exports.ForgotPasswordResetPasswordRequest = ForgotPasswordResetPasswordRequest;
-__decorate([
     (0, class_validator_1.IsString)()
-], ForgotPasswordResetPasswordRequest.prototype, "token", void 0);
+], ResetPasswordRequest.prototype, "token", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(8, { message: 'Password must be at least 8 characters long' }),
+    (0, class_validator_1.MinLength)(8, { message: "Password must be at least 8 characters long" }),
     (0, class_validator_1.Matches)(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
-        message: 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character',
+        message: "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character",
     })
-], ForgotPasswordResetPasswordRequest.prototype, "newPassword", void 0);
+], ResetPasswordRequest.prototype, "newPassword", void 0);
