@@ -7,12 +7,13 @@ export const app = express();
 
 const corsOptions = {
   origin: "http://localhost:3000",
-  optionsSuccessStatus: 200, // For legacy browser support
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+app.use(cors(corsOptions));
+app.use(apiKeyMiddleware);
 app.use(
-  cors(corsOptions),
-  apiKeyMiddleware,
   urlencoded({
     extended: true,
   }),

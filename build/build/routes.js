@@ -28,6 +28,8 @@ const models = {
             "firstName": { "dataType": "string", "required": true },
             "lastName": { "dataType": "string", "required": true },
             "birthDay": { "dataType": "string", "required": true },
+            "createdAt": { "dataType": "string" },
+            "updatedAt": { "dataType": "string" },
         },
         "additionalProperties": false,
     },

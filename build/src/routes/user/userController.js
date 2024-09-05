@@ -17,33 +17,65 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const tsoa_1 = require("tsoa");
 const auth_middleware_1 = require("../../middleware/auth.middleware");
+const user_model_1 = __importDefault(require("../../models/user.model"));
+require("dotenv").config();
 let UserController = class UserController extends tsoa_1.Controller {
     getMe(req, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const token = (0, auth_middleware_1.getToken)(req.headers["authorization"]);
-                return {
-                    id: "req.user.id",
-                    email: "req.user.email",
-                    firstName: "req.user.username",
-                    lastName: "req.user.username",
-                    birthDay: "req.user.birthDay",
-                };
+                const token = (0, auth_middleware_1.getToken)(req.headers);
+                console.log(token);
+                if (!token) {
+                    return errorResponse(401, {
+                        message: "Unauthorized",
+                        code: "unauthorized",
+                    });
+                }
+                const decodedToken = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || "");
+                if (typeof decodedToken !== "object" || !("id" in decodedToken)) {
+                    return errorResponse(404, {
+                        message: "Internal Server Error",
+                        code: "internal_server_error",
+                    });
+                }
+                const user = yield user_model_1.default.findOne({
+                    where: { id: decodedToken.id },
+                    attributes: { exclude: ["password"] },
+                });
+                if (!user) {
+                    return errorResponse(404, {
+                        message: "User not found",
+                        code: "user_not_found",
+                    });
+                }
+                this.setStatus(200);
+                return user;
             }
-            catch (err) { }
+            catch (err) {
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
+                });
+            }
         });
     }
 };
 exports.UserController = UserController;
 __decorate([
     (0, tsoa_1.Get)("get-me"),
+    (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     __param(0, (0, tsoa_1.Request)()),
     __param(1, (0, tsoa_1.Res)())
 ], UserController.prototype, "getMe", null);
 exports.UserController = UserController = __decorate([
+    (0, tsoa_1.Tags)("User"),
     (0, tsoa_1.Route)("user")
 ], UserController);

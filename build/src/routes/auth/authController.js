@@ -313,5 +313,6 @@ __decorate([
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "forgotPassword", null);
 exports.AuthController = AuthController = __decorate([
+    (0, tsoa_1.Tags)("Auth"),
     (0, tsoa_1.Route)("auth")
 ], AuthController);

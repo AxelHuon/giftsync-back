@@ -23,6 +23,12 @@
                     },
                     "birthDay": {
                         "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -292,6 +298,9 @@
                         }
                     }
                 },
+                "tags": [
+                    "User"
+                ],
                 "security": [],
                 "parameters": []
             }
@@ -341,6 +350,9 @@
                         }
                     }
                 },
+                "tags": [
+                    "Auth"
+                ],
                 "security": [],
                 "parameters": [],
                 "requestBody": {
@@ -400,6 +412,9 @@
                         }
                     }
                 },
+                "tags": [
+                    "Auth"
+                ],
                 "security": [],
                 "parameters": [],
                 "requestBody": {
@@ -459,6 +474,9 @@
                         }
                     }
                 },
+                "tags": [
+                    "Auth"
+                ],
                 "security": [],
                 "parameters": [],
                 "requestBody": {
@@ -508,6 +526,9 @@
                         }
                     }
                 },
+                "tags": [
+                    "Auth"
+                ],
                 "security": [],
                 "parameters": [],
                 "requestBody": {
@@ -557,6 +578,9 @@
                         }
                     }
                 },
+                "tags": [
+                    "Auth"
+                ],
                 "security": [],
                 "parameters": [],
                 "requestBody": {
