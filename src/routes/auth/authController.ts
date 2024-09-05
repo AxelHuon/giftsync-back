@@ -8,6 +8,7 @@ import {
   Put,
   Res,
   Route,
+  Tags,
   TsoaResponse,
 } from "tsoa";
 import transport from "../../mailConfig/mailConfig";
@@ -31,6 +32,7 @@ import {
 
 const bcrypt = require("bcrypt");
 
+@Tags("Auth")
 @Route("auth")
 export class AuthController extends Controller {
   @Post("signup")

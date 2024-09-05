@@ -6,6 +6,7 @@ import {
   Request,
   Res,
   Route,
+  Tags,
   TsoaResponse,
 } from "tsoa";
 import { getToken, securityMiddleware } from "../../middleware/auth.middleware";
@@ -15,6 +16,7 @@ import { UserClassGetMeResponse } from "./userClass";
 
 require("dotenv").config();
 
+@Tags("User")
 @Route("user")
 export class UserController extends Controller {
   @Get("get-me")
