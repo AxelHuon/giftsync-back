@@ -18,11 +18,11 @@ import AuthTokenForgotPassword from "../../models/authtokenForgotPassword.model"
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
 import {
-  ForgotPasswordResetPasswordRequest,
-  ForgotPasswordResetPasswordResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
-  RegisterUserDTO,
+  RegisterUserRequest,
   RegisterUserResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
@@ -36,9 +36,9 @@ const bcrypt = require("bcrypt");
 @Route("auth")
 export class AuthController extends Controller {
   @Post("signup")
-  @Middlewares([validationBodyMiddleware(RegisterUserDTO)])
+  @Middlewares([validationBodyMiddleware(RegisterUserRequest)])
   public async registerUser(
-    @Body() body: RegisterUserDTO,
+    @Body() body: RegisterUserRequest,
     @Res() errorResponse: TsoaResponse<400 | 422 | 500, ErrorResponse>,
   ): Promise<RegisterUserResponse> {
     try {
@@ -205,12 +205,12 @@ export class AuthController extends Controller {
     }
   }
 
-  @Post("request-forgot-password")
-  @Middlewares([validationBodyMiddleware(ResetPasswordRequest)])
+  @Post("forgot-password")
+  @Middlewares([validationBodyMiddleware(ForgotPasswordRequest)])
   public async requetsForgotPassword(
-    @Body() body: ResetPasswordRequest,
+    @Body() body: ForgotPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
-  ): Promise<ResetPasswordResponse> {
+  ): Promise<ForgotPasswordResponse> {
     const { email } = body;
 
     if (!email) {
@@ -265,12 +265,12 @@ export class AuthController extends Controller {
     }
   }
 
-  @Put("forgot-password")
-  @Middlewares([validationBodyMiddleware(ForgotPasswordResetPasswordRequest)])
+  @Put("reset-password")
+  @Middlewares([validationBodyMiddleware(ResetPasswordRequest)])
   public async forgotPassword(
-    @Body() body: ForgotPasswordResetPasswordRequest,
+    @Body() body: ResetPasswordRequest,
     @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
-  ): Promise<ForgotPasswordResetPasswordResponse> {
+  ): Promise<ResetPasswordResponse> {
     try {
       const { token, newPassword } = body;
       if (!newPassword) {
