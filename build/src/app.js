@@ -22,22 +22,19 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
-const cors_1 = __importDefault(require("cors"));
 const express_1 = __importStar(require("express"));
 const routes_1 = require("../build/routes");
 const apikey_middleware_1 = require("./middleware/apikey.middleware");
+const cors = require("cors");
 exports.app = (0, express_1.default)();
 const corsOptions = {
     origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
 };
-exports.app.use((0, cors_1.default)(corsOptions));
+exports.app.use(cors(corsOptions));
 exports.app.use(apikey_middleware_1.apiKeyMiddleware);
 exports.app.use((0, express_1.urlencoded)({
     extended: true,
