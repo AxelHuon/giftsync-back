@@ -7,7 +7,7 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"UserClassGetMeResponse": {
+			"UserClassGetResponse": {
 				"properties": {
 					"id": {
 						"type": "string"
@@ -21,14 +21,17 @@
 					"lastName": {
 						"type": "string"
 					},
-					"birthDay": {
-						"type": "string"
+					"dateOfBirth": {
+						"type": "string",
+						"format": "date-time"
 					},
 					"createdAt": {
-						"type": "string"
+						"type": "string",
+						"format": "date-time"
 					},
 					"updatedAt": {
-						"type": "string"
+						"type": "string",
+						"format": "date-time"
 					}
 				},
 				"required": [
@@ -36,7 +39,7 @@
 					"email",
 					"firstName",
 					"lastName",
-					"birthDay"
+					"dateOfBirth"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -53,6 +56,98 @@
 				"required": [
 					"message",
 					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RoomAttributes": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"ownerId": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"ownerId",
+					"slug"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateRoomRequest": {
+				"properties": {
+					"title": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"InviteUserResponse": {
+				"properties": {
+					"roomInviteToken": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"roomInviteToken"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"InviteUserRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"roomId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"roomId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"JoinRoomResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"roomId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"roomId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"JoinRoomRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -87,8 +182,9 @@
 					"password": {
 						"type": "string"
 					},
-					"birthDay": {
-						"type": "string"
+					"dateOfBirth": {
+						"type": "string",
+						"format": "date-time"
 					}
 				},
 				"required": [
@@ -96,7 +192,7 @@
 					"firstName",
 					"lastName",
 					"password",
-					"birthDay"
+					"dateOfBirth"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -118,8 +214,9 @@
 					"lastName": {
 						"type": "string"
 					},
-					"birthDay": {
-						"type": "string"
+					"dateOfBirth": {
+						"type": "string",
+						"format": "date-time"
 					},
 					"email": {
 						"type": "string"
@@ -131,7 +228,7 @@
 					"refreshToken",
 					"firstName",
 					"lastName",
-					"birthDay",
+					"dateOfBirth",
 					"email"
 				],
 				"type": "object",
@@ -253,16 +350,16 @@
 		"contact": {}
 	},
 	"paths": {
-		"/user/get-me": {
+		"/user/{userId}": {
 			"get": {
-				"operationId": "GetMe",
+				"operationId": "GetUserById",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/UserClassGetMeResponse"
+									"$ref": "#/components/schemas/UserClassGetResponse"
 								}
 							}
 						}
@@ -302,7 +399,444 @@
 					"User"
 				],
 				"security": [],
-				"parameters": []
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/room/create": {
+			"post": {
+				"operationId": "CreateRoom",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RoomAttributes"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Room"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateRoomRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/room/invite-user": {
+			"post": {
+				"operationId": "InviteUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InviteUserResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Room"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/InviteUserRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/room/join/{token}": {
+			"post": {
+				"operationId": "JoinRoom",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/JoinRoomResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Room"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/JoinRoomRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/room/delete/{roomId}": {
+			"delete": {
+				"operationId": "DeleteRoom",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RoomAttributes"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Room"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "roomId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/room/update/{roomId}": {
+			"put": {
+				"operationId": "UpdateRoom",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RoomAttributes"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Room"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "roomId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateRoomRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/room/{roomId}": {
+			"get": {
+				"operationId": "GetRoomById",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RoomAttributes"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Room"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "roomId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		},
 		"/auth/signup": {

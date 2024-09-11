@@ -1,4 +1,5 @@
 import { NextFunction, Response } from "express";
+import jwt from "jsonwebtoken";
 import AuthtokenModel from "../models/authtoken.model";
 
 export function getToken(headers: any): string | null {
@@ -20,11 +21,31 @@ export async function securityMiddleware(
       .status(401)
       .send({ message: "Unauthorized", code: "token_missing" });
   }
-  const isGoodToken = AuthtokenModel.findOne({ where: { token: token } });
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
+  if (typeof decodedToken !== "object" || !("id" in decodedToken)) {
+    return res
+      .status(401)
+      .send({ message: "Unauthorized", code: "token_invalid" });
+  }
+
+  const isGoodToken = await AuthtokenModel.findOne({
+    where: { user: decodedToken.id },
+  });
+
   if (!isGoodToken) {
     return res
       .status(401)
       .send({ message: "Unauthorized", code: "token_invalid" });
   }
+
+  const isExpired =
+    await AuthtokenModel.verifyAndDeleteExpiredToken(isGoodToken);
+
+  if (isExpired) {
+    return res
+      .status(401)
+      .send({ message: "Unauthorized", code: "token_expired" });
+  }
+
   next();
 }

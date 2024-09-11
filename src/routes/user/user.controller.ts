@@ -1,48 +1,31 @@
-import jwt from "jsonwebtoken";
 import {
   Controller,
   Get,
-  Middlewares,
+  Path,
   Request,
   Res,
   Route,
   Tags,
   TsoaResponse,
 } from "tsoa";
-import { getToken, securityMiddleware } from "../../middleware/auth.middleware";
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
-import { UserClassGetMeResponse } from "./userClass";
+import { UserClassGetResponse } from "./user.interface";
 
 require("dotenv").config();
 
 @Tags("User")
 @Route("user")
 export class UserController extends Controller {
-  @Get("get-me")
-  @Middlewares(securityMiddleware)
-  public async getMe(
+  @Get("{userId}")
+  public async getUserById(
+    @Path() userId: string,
     @Request() req: any,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
-  ): Promise<UserClassGetMeResponse> {
+  ): Promise<UserClassGetResponse> {
     try {
-      const token = getToken(req.headers);
-      console.log(token);
-      if (!token) {
-        return errorResponse(401, {
-          message: "Unauthorized",
-          code: "unauthorized",
-        });
-      }
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
-      if (typeof decodedToken !== "object" || !("id" in decodedToken)) {
-        return errorResponse(404, {
-          message: "Internal Server Error",
-          code: "internal_server_error",
-        });
-      }
       const user = await User.findOne({
-        where: { id: decodedToken.id },
+        where: { id: userId },
         attributes: { exclude: ["password"] },
       });
       if (!user) {

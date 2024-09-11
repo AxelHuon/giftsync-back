@@ -28,7 +28,7 @@ import {
   ResetPasswordResponse,
   SignInUserRequest,
   SignInUserResponse,
-} from "./authClass";
+} from "./auth.interface";
 
 const bcrypt = require("bcrypt");
 
@@ -42,7 +42,7 @@ export class AuthController extends Controller {
     @Res() errorResponse: TsoaResponse<400 | 422 | 500, ErrorResponse>,
   ): Promise<RegisterUserResponse> {
     try {
-      const { firstName, lastName, email, password, birthDay } = body;
+      const { firstName, lastName, email, password, dateOfBirth } = body;
       const userExists = await User.findOne({ where: { email } });
       if (userExists) {
         return errorResponse(400, {
@@ -54,7 +54,7 @@ export class AuthController extends Controller {
         email,
         lastName,
         firstName,
-        birthDay,
+        dateOfBirth,
         password: await bcrypt.hash(password, 12),
       });
 
@@ -113,7 +113,7 @@ export class AuthController extends Controller {
           lastName: user.lastName,
           email: user.email,
           accessToken: token,
-          birthDay: user.birthDay,
+          dateOfBirth: user.dateOfBirth,
           refreshToken,
         };
       } else {
@@ -226,7 +226,6 @@ export class AuthController extends Controller {
       });
 
       if (!user) {
-        console.log("No user found");
         return errorResponse(500, {
           message: "Internal server error",
           code: "internal_server_error",
@@ -236,7 +235,7 @@ export class AuthController extends Controller {
         await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
         const mailOptions = {
-          from: "noreply@email.com",
+          from: "noreply@giftsync.fr",
           to: user.email,
           subject: "Forgot password",
           html: `<p>${forgotPasswordToken}</p>`,

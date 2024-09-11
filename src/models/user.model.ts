@@ -1,5 +1,10 @@
-import {DataTypes, HasManyGetAssociationsMixin, Model, Optional,} from "sequelize";
-import {v4 as uuidv4} from "uuid";
+import {
+  DataTypes,
+  HasManyGetAssociationsMixin,
+  Model,
+  Optional,
+} from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 import connection from "../config/connection";
 import Room from "./room.model";
 
@@ -9,12 +14,11 @@ export type UserAttributes = {
   lastName: string;
   email: string;
   password: string;
-  birthDay: string;
+  dateOfBirth: Date;
   createdAt?: string;
   updatedAt?: string;
 };
 type UserCreationAttributes = Optional<UserAttributes, "id">;
-
 
 class User extends Model<UserAttributes, UserCreationAttributes> {
   declare id: string;
@@ -22,9 +26,9 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
   declare lastName: string;
   declare email: string;
   declare password: string;
-  declare birthDay: string;
-  declare createdAt?: string;
-  declare updatedAt?: string;
+  declare dateOfBirth: Date;
+  declare createdAt?: Date;
+  declare updatedAt?: Date;
   declare getRooms: HasManyGetAssociationsMixin<Room[]>;
 }
 
@@ -40,7 +44,7 @@ User.init(
     lastName: DataTypes.STRING,
     email: DataTypes.STRING,
     password: DataTypes.STRING,
-    birthDay: DataTypes.DATE,
+    dateOfBirth: DataTypes.DATEONLY,
   },
   {
     sequelize: connection,

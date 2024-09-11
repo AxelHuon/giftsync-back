@@ -34,7 +34,7 @@ export class RegisterUserRequest {
   password: string;
 
   @IsDateString({}, { message: "Invalid date format for birthDay" })
-  birthDay: string;
+  dateOfBirth: Date;
 }
 
 export interface RegisterUserResponse {
@@ -56,7 +56,7 @@ export interface SignInUserResponse {
   refreshToken: string;
   firstName: string;
   lastName: string;
-  birthDay: string;
+  dateOfBirth: Date;
   email: string;
 }
 
