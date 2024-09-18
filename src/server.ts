@@ -35,7 +35,7 @@ app.get("/swagger-json", (req, res) => {
 
 const start = async (): Promise<void> => {
   try {
-    await connection.sync();
+    await connection.sync({ force: true });
     app.listen(port, () => {
       console.log(`app started on port ${port}`);
     });
