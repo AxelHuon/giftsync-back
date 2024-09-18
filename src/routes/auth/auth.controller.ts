@@ -234,11 +234,12 @@ export class AuthController extends Controller {
       const forgotPasswordToken =
         await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
+        const url = `${process.env.FRONTEND_URL}/auth/reset-password?token=${forgotPasswordToken}`;
         const mailOptions = {
-          from: "noreply@giftsync.fr",
+          from: "contact@axelhuon.fr",
           to: user.email,
-          subject: "Forgot password",
-          html: `<p>${forgotPasswordToken}</p>`,
+          subject: "GiftSync - Mot de passe oublié",
+          html: `<a href="${url}">Ré initialiser votre mot de passe</a>`,
         };
         try {
           await transport.sendMail(mailOptions);

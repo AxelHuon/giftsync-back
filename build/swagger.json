@@ -7,6 +7,22 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"ErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserClassGetResponse": {
 				"properties": {
 					"id": {
@@ -40,22 +56,6 @@
 					"firstName",
 					"lastName",
 					"dateOfBirth"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ErrorResponse": {
-				"properties": {
-					"message": {
-						"type": "string"
-					},
-					"code": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"message",
-					"code"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -350,6 +350,65 @@
 		"contact": {}
 	},
 	"paths": {
+		"/user/{userId}/rooms": {
+			"get": {
+				"operationId": "GetRoomOfaUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/user/{userId}": {
 			"get": {
 				"operationId": "GetUserById",

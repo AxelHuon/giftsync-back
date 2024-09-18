@@ -4,21 +4,21 @@ import Room from "./room.model";
 import User from "./user.model";
 
 export interface RoomUserAttributes {
-  RoomId: string;
-  UserId: string;
+  roomId: string;
+  userId: string;
 }
 
 export class RoomUser
   extends Model<RoomUserAttributes>
   implements RoomUserAttributes
 {
-  public RoomId!: string;
-  public UserId!: string;
+  public roomId!: string;
+  public userId!: string;
 }
 
 RoomUser.init(
   {
-    RoomId: {
+    roomId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
@@ -27,7 +27,7 @@ RoomUser.init(
       },
       field: "roomId",
     },
-    UserId: {
+    userId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {

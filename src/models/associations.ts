@@ -7,12 +7,12 @@ import User from "./user.model";
 
 Room.belongsToMany(User, {
   through: RoomUser,
-  foreignKey: "RoomId",
+  foreignKey: "roomId",
   as: "users",
 });
 User.belongsToMany(Room, {
   through: RoomUser,
-  foreignKey: "UserId",
+  foreignKey: "userId",
   as: "rooms",
 });
 

@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import {
   Body,
   Controller,
@@ -14,7 +13,11 @@ import {
   Tags,
   TsoaResponse,
 } from "tsoa";
-import { getToken, securityMiddleware } from "../../middleware/auth.middleware";
+import {
+  getToken,
+  jwtVerify,
+  securityMiddleware,
+} from "../../middleware/auth.middleware";
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
 import Room, { RoomAttributes } from "../../models/room.model";
 import TokenInviteRoomModel from "../../models/tokenInviteRoom.model";
@@ -43,38 +46,36 @@ export class RoomController extends Controller {
   ): Promise<RoomAttributes> {
     try {
       const token = getToken(req.headers);
-      if (!token) {
+      const verifiedToken = await jwtVerify(token);
+      if ("code" in verifiedToken) {
         return errorResponse(401, {
-          message: "Unauthorized",
-          code: "unauthorized",
+          message: verifiedToken.message,
+          code: verifiedToken.code,
         });
       }
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
-      if (typeof decodedToken === "object" && "id" in decodedToken) {
-        const owner = await User.findOne({ where: { id: decodedToken.id } });
-        if (!owner) {
-          return errorResponse(404, {
-            message: "User not found",
-            code: "user_not_found",
-          });
-        }
-        const { title } = body;
-        if (!title) {
-          return errorResponse(422, {
-            message: "Title is required",
-            code: "title_required",
-          });
-        }
-        const newRoom = await Room.create({
-          title,
-          ownerId: decodedToken.id,
+      const owner = await User.findOne({ where: { id: verifiedToken.id } });
+      if (!owner) {
+        return errorResponse(404, {
+          message: "User not found",
+          code: "user_not_found",
         });
-
-        await newRoom.addUsers([owner]);
-
-        this.setStatus(200);
-        return newRoom;
       }
+      const { title } = body;
+      if (!title) {
+        return errorResponse(422, {
+          message: "Title is required",
+          code: "title_required",
+        });
+      }
+      const newRoom = await Room.create({
+        title,
+        ownerId: verifiedToken.id,
+      });
+
+      await newRoom.addUsers([owner]);
+
+      this.setStatus(200);
+      return newRoom;
     } catch (error) {
       console.log(error);
 
@@ -95,61 +96,59 @@ export class RoomController extends Controller {
   ): Promise<InviteUserResponse> {
     try {
       const token = getToken(req.headers);
-      if (!token) {
+      const verifiedToken = await jwtVerify(token);
+      if ("code" in verifiedToken) {
         return errorResponse(401, {
-          message: "Unauthorized",
-          code: "unauthorized",
+          message: verifiedToken.message,
+          code: verifiedToken.code,
         });
       }
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
-      if (typeof decodedToken === "object" && "id" in decodedToken) {
-        const user = await User.findOne({ where: { id: decodedToken.id } });
-        if (!user) {
-          return errorResponse(404, {
-            message: "User not found",
-            code: "user_not_found",
-          });
-        }
-        const { email, roomId } = body;
-        if (!email) {
-          return errorResponse(422, {
-            message: "Email is required",
-            code: "email_required",
-          });
-        }
-        if (!roomId) {
-          return errorResponse(422, {
-            message: "RoomId is required",
-            code: "room_id_required",
-          });
-        }
-        const room = await Room.findOne({ where: { id: roomId } });
-
-        if (!room) {
-          return errorResponse(404, {
-            message: "Room not found",
-            code: "room_not_found",
-          });
-        }
-
-        room.getUsers().then((users) => {
-          if (!users.find((u) => u.id === user.id)) {
-            return errorResponse(401, {
-              message: "Unauthorized",
-              code: "unauthorized",
-            });
-          }
+      const user = await User.findOne({ where: { id: verifiedToken.id } });
+      if (!user) {
+        return errorResponse(404, {
+          message: "User not found",
+          code: "user_not_found",
         });
-
-        const roomInviteToken = await TokenInviteRoomModel.createToken(room);
-
-        const url = `${process.env.FRONTEND_URL}/room/join/${roomInviteToken}`;
-
-        this.setStatus(200);
-        return {
-          roomInviteToken: url,
-        };
       }
+      const { email, roomId } = body;
+      if (!email) {
+        return errorResponse(422, {
+          message: "Email is required",
+          code: "email_required",
+        });
+      }
+      if (!roomId) {
+        return errorResponse(422, {
+          message: "RoomId is required",
+          code: "room_id_required",
+        });
+      }
+      const room = await Room.findOne({ where: { id: roomId } });
+
+      if (!room) {
+        return errorResponse(404, {
+          message: "Room not found",
+          code: "room_not_found",
+        });
+      }
+
+      room.getUsers().then((users) => {
+        if (!users.find((u) => u.id === user.id)) {
+          return errorResponse(401, {
+            message: "Unauthorized",
+            code: "unauthorized",
+          });
+        }
+      });
+
+      const roomInviteToken = await TokenInviteRoomModel.createToken(room);
+
+      const url = `${process.env.FRONTEND_URL}/room/join/${roomInviteToken}`;
+
+      this.setStatus(200);
+      return {
+        roomInviteToken: url,
+      };
     } catch (error) {
       return errorResponse(500, {
         message: "Internal Server Error",
@@ -168,7 +167,6 @@ export class RoomController extends Controller {
   ): Promise<JoinRoomResponse> {
     try {
       const { email } = body;
-
       if (!email) {
         return errorResponse(422, {
           message: "Email is required",
@@ -250,38 +248,36 @@ export class RoomController extends Controller {
   ): Promise<RoomAttributes> {
     try {
       const token = getToken(req.headers);
-      if (!token) {
+      const verifiedToken = await jwtVerify(token);
+      if ("code" in verifiedToken) {
+        return errorResponse(401, {
+          message: verifiedToken.message,
+          code: verifiedToken.code,
+        });
+      }
+      const user = await User.findOne({ where: { id: verifiedToken.id } });
+      if (!user) {
+        return errorResponse(404, {
+          message: "User not found",
+          code: "user_not_found",
+        });
+      }
+      const room = await Room.findOne({ where: { id: roomId } });
+      if (!room) {
+        return errorResponse(404, {
+          message: "Room not found",
+          code: "room_not_found",
+        });
+      }
+      if (room.ownerId !== user.id) {
         return errorResponse(401, {
           message: "Unauthorized",
           code: "unauthorized",
         });
       }
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
-      if (typeof decodedToken === "object" && "id" in decodedToken) {
-        const user = await User.findOne({ where: { id: decodedToken.id } });
-        if (!user) {
-          return errorResponse(404, {
-            message: "User not found",
-            code: "user_not_found",
-          });
-        }
-        const room = await Room.findOne({ where: { id: roomId } });
-        if (!room) {
-          return errorResponse(404, {
-            message: "Room not found",
-            code: "room_not_found",
-          });
-        }
-        if (room.ownerId !== user.id) {
-          return errorResponse(401, {
-            message: "Unauthorized",
-            code: "unauthorized",
-          });
-        }
-        await room.destroy();
-        this.setStatus(200);
-        return room;
-      }
+      await room.destroy();
+      this.setStatus(200);
+      return room;
     } catch (error) {
       console.log("error", error);
       return errorResponse(500, {
@@ -303,46 +299,44 @@ export class RoomController extends Controller {
   ): Promise<RoomAttributes> {
     try {
       const token = getToken(req.headers);
-      if (!token) {
+      const verifiedToken = await jwtVerify(token);
+      if ("code" in verifiedToken) {
+        return errorResponse(401, {
+          message: verifiedToken.message,
+          code: verifiedToken.code,
+        });
+      }
+      const user = await User.findOne({ where: { id: verifiedToken.id } });
+      if (!user) {
+        return errorResponse(404, {
+          message: "User not found",
+          code: "user_not_found",
+        });
+      }
+      const room = await Room.findOne({ where: { id: roomId } });
+      if (!room) {
+        return errorResponse(404, {
+          message: "Room not found",
+          code: "room_not_found",
+        });
+      }
+      if (room.ownerId !== user.id) {
         return errorResponse(401, {
           message: "Unauthorized",
           code: "unauthorized",
         });
       }
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
-      if (typeof decodedToken === "object" && "id" in decodedToken) {
-        const user = await User.findOne({ where: { id: decodedToken.id } });
-        if (!user) {
-          return errorResponse(404, {
-            message: "User not found",
-            code: "user_not_found",
-          });
-        }
-        const room = await Room.findOne({ where: { id: roomId } });
-        if (!room) {
-          return errorResponse(404, {
-            message: "Room not found",
-            code: "room_not_found",
-          });
-        }
-        if (room.ownerId !== user.id) {
-          return errorResponse(401, {
-            message: "Unauthorized",
-            code: "unauthorized",
-          });
-        }
-        const { title } = body;
-        if (!title) {
-          return errorResponse(422, {
-            message: "Title is required",
-            code: "title_required",
-          });
-        }
-        room.title = title;
-        await room.save();
-        this.setStatus(200);
-        return room;
+      const { title } = body;
+      if (!title) {
+        return errorResponse(422, {
+          message: "Title is required",
+          code: "title_required",
+        });
       }
+      room.title = title;
+      await room.save();
+      this.setStatus(200);
+      return room;
     } catch (error) {
       console.log("error", error);
       return errorResponse(500, {
@@ -351,7 +345,6 @@ export class RoomController extends Controller {
       });
     }
   }
-
   /*Get room by id*/
   @Get("{roomId}")
   @Middlewares(securityMiddleware)
@@ -362,33 +355,37 @@ export class RoomController extends Controller {
   ): Promise<RoomAttributes> {
     try {
       const token = getToken(req.headers);
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || "");
-      if (typeof decodedToken === "object" && "id" in decodedToken) {
-        const user = await User.findOne({ where: { id: decodedToken.id } });
-        if (!user) {
-          return errorResponse(404, {
-            message: "User not found",
-            code: "user_not_found",
-          });
-        }
-        const room = await Room.findOne({ where: { id: roomId } });
-        if (!room) {
-          return errorResponse(404, {
-            message: "Room not found",
-            code: "room_not_found",
-          });
-        }
-
-        const usersOfTheRoom = await room.getUsers();
-        if (!usersOfTheRoom.find((u) => u.id === user.id)) {
-          return errorResponse(401, {
-            message: "Unauthorized",
-            code: "unauthorized",
-          });
-        }
-        this.setStatus(200);
-        return room;
+      const verifiedToken = await jwtVerify(token);
+      if ("code" in verifiedToken) {
+        return errorResponse(401, {
+          message: verifiedToken.message,
+          code: verifiedToken.code,
+        });
       }
+      const user = await User.findOne({ where: { id: verifiedToken.id } });
+      if (!user) {
+        return errorResponse(404, {
+          message: "User not found",
+          code: "user_not_found",
+        });
+      }
+      const room = await Room.findOne({ where: { id: roomId } });
+      if (!room) {
+        return errorResponse(404, {
+          message: "Room not found",
+          code: "room_not_found",
+        });
+      }
+
+      const usersOfTheRoom = await room.getUsers();
+      if (!usersOfTheRoom.find((u) => u.id === user.id)) {
+        return errorResponse(401, {
+          message: "Unauthorized",
+          code: "unauthorized",
+        });
+      }
+      this.setStatus(200);
+      return room;
     } catch (error) {
       console.log("error", error);
       return errorResponse(500, {
