@@ -227,8 +227,8 @@ export class AuthController extends Controller {
 
       if (!user) {
         return errorResponse(500, {
-          message: "Internal server error",
-          code: "internal_server_error",
+          message: "No user found",
+          code: "no_user_found",
         });
       }
       const forgotPasswordToken =
@@ -249,10 +249,9 @@ export class AuthController extends Controller {
             code: "email_sent",
           };
         } catch (error) {
-          console.log(error);
           return errorResponse(500, {
-            message: "Internal server error",
-            code: "internal_server_error",
+            message: "Error sending email",
+            code: "error_sending_email",
           });
         }
       }
