@@ -9,16 +9,20 @@ if (!process.env.DATABASE_URL) {
 
 const isProduction = process.env.NODE_ENV === "production";
 
+const sslConfig = isProduction
+  ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    }
+  : {};
+
 const connection = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   protocol: "postgres",
   logging: false,
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
-  },
+  dialectOptions: sslConfig,
 });
 
 // Export de la connexion
