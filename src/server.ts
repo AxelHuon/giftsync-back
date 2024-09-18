@@ -8,7 +8,7 @@ import "dotenv/config";
 import "./models/associations";
 
 require("dotenv").config();
-const port = process.env.PORT;
+const port = 3001;
 app.use(
   "/api-docs",
   swaggerUi.serve,
