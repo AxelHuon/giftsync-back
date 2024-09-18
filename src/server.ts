@@ -1,6 +1,7 @@
 import { Request as ExRequest, Response as ExResponse } from "express";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import process from "node:process";
 import swaggerUi from "swagger-ui-express";
 import { app } from "./app";
 import connection from "./config/connection";
@@ -8,7 +9,7 @@ import "dotenv/config";
 import "./models/associations";
 
 require("dotenv").config();
-const port = 3001;
+const port = process.env.PORT;
 app.use(
   "/api-docs",
   swaggerUi.serve,
