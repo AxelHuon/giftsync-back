@@ -249,6 +249,7 @@ export class AuthController extends Controller {
             code: "email_sent",
           };
         } catch (error) {
+          console.log(error);
           return errorResponse(500, {
             message: "Error sending email",
             code: "error_sending_email",
