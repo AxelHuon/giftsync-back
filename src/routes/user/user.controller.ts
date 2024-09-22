@@ -18,10 +18,10 @@ require("dotenv").config();
 
 @Tags("User")
 @Route("user")
-@Middlewares([securityMiddleware])
 export class UserController extends Controller {
   @Get("{userId}/rooms")
-  public async getRoomOfaUser(
+  @Middlewares([securityMiddleware])
+  public async getRoomOfAUser(
     @Request() req: any,
     @Path() userId: string,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
@@ -42,24 +42,25 @@ export class UserController extends Controller {
   }
 
   @Get("{userId}")
+  @Middlewares([securityMiddleware])
   public async getUserById(
     @Path() userId: string,
     @Request() req: any,
-    @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
+    @Res()
+    errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
   ): Promise<UserClassGetResponse> {
     try {
       const user = await User.findOne({
         where: { id: userId },
         attributes: { exclude: ["password"] },
+        include: ["rooms"],
       });
-
       if (!user) {
         return errorResponse(404, {
           message: "User not found",
           code: "user_not_found",
         });
       }
-
       this.setStatus(200);
       return user;
     } catch (err) {

@@ -27,6 +27,15 @@ export async function jwtVerify(
         code: "token_invalid",
       };
     }
+    const tokenExists = await AuthtokenModel.findOne({
+      where: { user: decodedToken.id },
+    });
+    if (!tokenExists) {
+      return {
+        message: "Invalid token",
+        code: "token_invalid",
+      };
+    }
     return decodedToken as { id: string };
   } catch (e) {
     if (e.message === "jwt expired") {
@@ -56,23 +65,6 @@ export async function securityMiddleware(
   const decodedToken = await jwtVerify(token);
   if ("code" in decodedToken) {
     return res.status(401).send(decodedToken);
-  }
-  const isGoodToken = await AuthtokenModel.findOne({
-    where: { user: decodedToken.id },
-  });
-  if (!isGoodToken) {
-    return res
-      .status(401)
-      .send({ message: "Unauthorized", code: "token_invalid" });
-  }
-
-  const isExpired =
-    await AuthtokenModel.verifyAndDeleteExpiredToken(isGoodToken);
-
-  if (isExpired) {
-    return res
-      .status(401)
-      .send({ message: "Unauthorized", code: "token_expired" });
   }
   next();
 }

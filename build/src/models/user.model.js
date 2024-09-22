@@ -28,7 +28,7 @@ User.init({
     lastName: sequelize_1.DataTypes.STRING,
     email: sequelize_1.DataTypes.STRING,
     password: sequelize_1.DataTypes.STRING,
-    birthDay: sequelize_1.DataTypes.DATE,
+    dateOfBirth: sequelize_1.DataTypes.DATEONLY,
 }, {
     sequelize: connection_1.default,
     modelName: "User",

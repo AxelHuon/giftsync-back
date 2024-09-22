@@ -21,8 +21,9 @@ function validationBodyMiddleware(type) {
         }
         catch (errors) {
             return res.status(422).json({
-                message: 'Validation Failed',
-                code: 'validation_failed',
+                message: "Validation Failed",
+                code: "validation_failed",
+                errors: errors,
             });
         }
     });

@@ -37,13 +37,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
+const node_process_1 = __importDefault(require("node:process"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const app_1 = require("./app");
 const connection_1 = __importDefault(require("./config/connection"));
 require("dotenv/config");
 require("./models/associations");
 require("dotenv").config();
-const port = process.env.PORT;
+const port = node_process_1.default.env.PORT;
 app_1.app.use("/api-docs", swagger_ui_express_1.default.serve, (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.send(swagger_ui_express_1.default.generateHTML(yield Promise.resolve().then(() => __importStar(require("../build/swagger.json")))));
 }));
@@ -68,7 +69,7 @@ const start = () => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.error(error);
-        process.exit(1);
+        node_process_1.default.exit(1);
     }
 });
 void start();

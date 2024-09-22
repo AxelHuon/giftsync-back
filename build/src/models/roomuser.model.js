@@ -12,7 +12,7 @@ class RoomUser extends sequelize_1.Model {
 }
 exports.RoomUser = RoomUser;
 RoomUser.init({
-    RoomId: {
+    roomId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
         references: {
@@ -21,7 +21,7 @@ RoomUser.init({
         },
         field: "roomId",
     },
-    UserId: {
+    userId: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
         references: {

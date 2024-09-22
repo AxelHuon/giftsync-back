@@ -206,9 +206,9 @@ export function RegisterRoutes(app: Router) {
     
         app.get('/api/user/:userId/rooms',
             ...(fetchMiddlewares<RequestHandler>(UserController)),
-            ...(fetchMiddlewares<RequestHandler>(UserController.prototype.getRoomOfaUser)),
+            ...(fetchMiddlewares<RequestHandler>(UserController.prototype.getRoomOfAUser)),
 
-            async function UserController_getRoomOfaUser(request: ExRequest, response: ExResponse, next: any) {
+            async function UserController_getRoomOfAUser(request: ExRequest, response: ExResponse, next: any) {
             const args: Record<string, TsoaRoute.ParameterSchema> = {
                     req: {"in":"request","name":"req","required":true,"dataType":"object"},
                     userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
@@ -224,7 +224,7 @@ export function RegisterRoutes(app: Router) {
                 const controller = new UserController();
 
               await templateService.apiHandler({
-                methodName: 'getRoomOfaUser',
+                methodName: 'getRoomOfAUser',
                 controller,
                 response,
                 next,

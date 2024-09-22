@@ -11,12 +11,12 @@ const roomuser_model_1 = __importDefault(require("./roomuser.model"));
 const user_model_1 = __importDefault(require("./user.model"));
 room_model_1.default.belongsToMany(user_model_1.default, {
     through: roomuser_model_1.default,
-    foreignKey: "RoomId",
+    foreignKey: "roomId",
     as: "users",
 });
 user_model_1.default.belongsToMany(room_model_1.default, {
     through: roomuser_model_1.default,
-    foreignKey: "UserId",
+    foreignKey: "userId",
     as: "rooms",
 });
 user_model_1.default.belongsToMany(gift_model_1.default, {

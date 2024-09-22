@@ -13,45 +13,45 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthTokenForgotPassword = void 0;
+exports.TokenInviteRoomModel = void 0;
 const sequelize_1 = require("sequelize");
 const uuid_1 = require("uuid");
 const connection_1 = __importDefault(require("../config/connection"));
-class AuthTokenForgotPassword extends sequelize_1.Model {
+class TokenInviteRoomModel extends sequelize_1.Model {
     static associate(models) {
-        _a.belongsTo(models.User, {
-            foreignKey: "user",
-            as: "user_id",
+        _a.belongsTo(models.Room, {
+            foreignKey: "room",
+            as: "room_id",
         });
     }
 }
-exports.AuthTokenForgotPassword = AuthTokenForgotPassword;
-_a = AuthTokenForgotPassword;
-AuthTokenForgotPassword.createForgotPasswordToken = (user) => __awaiter(void 0, void 0, void 0, function* () {
+exports.TokenInviteRoomModel = TokenInviteRoomModel;
+_a = TokenInviteRoomModel;
+TokenInviteRoomModel.createToken = (room) => __awaiter(void 0, void 0, void 0, function* () {
     let expiredAt = new Date();
-    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("1"));
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("7200"));
     let _token = (0, uuid_1.v4)();
     let refreshToken = yield _a.create({
         token: _token,
-        user: user.id,
+        room: room.id,
         expiryDate: expiredAt,
     });
     return refreshToken.dataValues.token;
 });
-AuthTokenForgotPassword.verifyAndDeleteExpiredTokenForgotPassword = (token) => __awaiter(void 0, void 0, void 0, function* () {
+TokenInviteRoomModel.verifyAndDeleteExpiredToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     const isExpired = token.dataValues.expiryDate.getTime() < new Date().getTime();
     if (isExpired) {
         yield _a.destroy({ where: { id: token.id } });
     }
     return isExpired;
 });
-AuthTokenForgotPassword.init({
+TokenInviteRoomModel.init({
     id: {
         type: sequelize_1.DataTypes.UUID,
         defaultValue: sequelize_1.DataTypes.UUIDV4,
         primaryKey: true,
     },
-    user: {
+    room: {
         type: sequelize_1.DataTypes.UUID,
         allowNull: false,
     },
@@ -65,6 +65,6 @@ AuthTokenForgotPassword.init({
     },
 }, {
     sequelize: connection_1.default,
-    modelName: "authTokenForgotPassword",
+    modelName: "inviteTokenRoom",
 });
-exports.default = AuthTokenForgotPassword;
+exports.default = TokenInviteRoomModel;

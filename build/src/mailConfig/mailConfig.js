@@ -1,17 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const nodemailer = require("nodemailer");
-require('dotenv').config();
-const password = process.env.PASSWORD_MAIL_TRAP;
-if (!password) {
-    throw new Error("PASSWORD_MAIL_TRAP is required");
-}
+require("dotenv").config();
 const transport = nodemailer.createTransport({
-    host: "sandbox.smtp.mailtrap.io",
-    port: 2525,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
     auth: {
-        user: "4e70b92624ec02",
-        pass: process.env.PASSWORD_MAIL_TRAP,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
     },
 });
 exports.default = transport;

@@ -64,6 +64,7 @@ export class AuthController extends Controller {
         code: "success_register",
       };
     } catch (error) {
+      console.log(error);
       return errorResponse(500, {
         message: "Internal Server Error",
         code: "internal_server_error",
@@ -101,11 +102,17 @@ export class AuthController extends Controller {
             code: "error_signIn_combination",
           });
         }
-        const token = jwt.sign({ id: user.id }, secretKey ?? "", {
-          expiresIn: "2h",
+        const tokenExists = await AuthtokenModel.findOne({
+          where: { user: user.id },
         });
-        const refreshToken = await AuthtokenModel.createToken(user);
 
+        if (tokenExists) {
+          await AuthtokenModel.destroy({ where: { id: tokenExists.id } });
+        }
+        const refreshToken = await AuthtokenModel.createToken(user);
+        const token = jwt.sign({ id: user.id }, secretKey ?? "", {
+          expiresIn: process.env.JWT_EXPIRATION || "24h",
+        });
         this.setStatus(200);
         return {
           id: user.id,
@@ -209,7 +216,7 @@ export class AuthController extends Controller {
   @Middlewares([validationBodyMiddleware(ForgotPasswordRequest)])
   public async forgotPassword(
     @Body() body: ForgotPasswordRequest,
-    @Res() errorResponse: TsoaResponse<403 | 500, ErrorResponse>,
+    @Res() errorResponse: TsoaResponse<403 | 404 | 500, ErrorResponse>,
   ): Promise<ForgotPasswordResponse> {
     const { email } = body;
 
@@ -226,7 +233,7 @@ export class AuthController extends Controller {
       });
 
       if (!user) {
-        return errorResponse(500, {
+        return errorResponse(404, {
           message: "No user found",
           code: "no_user_found",
         });
@@ -234,7 +241,7 @@ export class AuthController extends Controller {
       const forgotPasswordToken =
         await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
-        const url = `${process.env.FRONTEND_URL}/auth/reset-password?token=${forgotPasswordToken}`;
+        const url = `${process.env.FRONTEND_URL}/reset-password?token=${forgotPasswordToken}`;
         const mailOptions = {
           from: "contact@axelhuon.fr",
           to: user.email,
@@ -245,7 +252,7 @@ export class AuthController extends Controller {
           await transport.sendMail(mailOptions);
           this.setStatus(200);
           return {
-            message: "Email Sent",
+            message: `Email Sent`,
             code: "email_sent",
           };
         } catch (error) {
@@ -257,7 +264,6 @@ export class AuthController extends Controller {
         }
       }
     } catch (err) {
-      console.log(err);
       return errorResponse(500, {
         message: "Internal server error",
         code: "internal_server_error",
@@ -303,6 +309,10 @@ export class AuthController extends Controller {
       const user = await User.findOne({ where: { id: tokenInformation.user } });
       if (user) {
         user.password = await bcrypt.hash(newPassword, 12);
+        /*Delete tokenInformation*/
+        await AuthTokenForgotPassword.destroy({
+          where: { id: tokenInformation.id },
+        });
         await user.save();
         this.setStatus(200);
         return {
