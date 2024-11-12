@@ -81,6 +81,59 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"SecretSantaResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserSecretSanta": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"name",
+					"email"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SecretSantaRequest": {
+				"properties": {
+					"maxPrice": {
+						"type": "number",
+						"format": "double"
+					},
+					"users": {
+						"items": {
+							"$ref": "#/components/schemas/UserSecretSanta"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"maxPrice",
+					"users"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"RoomAttributes": {
 				"properties": {
 					"id": {
@@ -554,6 +607,78 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/UserClassEditRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/secret-santa": {
+			"post": {
+				"operationId": "PostSecretSanta",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SecretSantaResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Secret Santa"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SecretSantaRequest"
 							}
 						}
 					}
