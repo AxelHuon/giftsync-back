@@ -7,3 +7,9 @@ export interface UserClassGetResponse {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export class UserClassEditRequest {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: Date;
+}

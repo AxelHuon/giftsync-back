@@ -45,6 +45,18 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "RegisterUserRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "email": { "dataType": "string", "required": true },
+            "firstName": { "dataType": "string", "required": true },
+            "lastName": { "dataType": "string", "required": true },
+            "password": { "dataType": "string", "required": true },
+            "dateOfBirth": { "dataType": "datetime", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "RoomAttributes": {
         "dataType": "refObject",
         "properties": {
@@ -103,18 +115,6 @@ const models = {
         "properties": {
             "message": { "dataType": "string", "required": true },
             "code": { "dataType": "string", "required": true },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "RegisterUserRequest": {
-        "dataType": "refObject",
-        "properties": {
-            "email": { "dataType": "string", "required": true },
-            "firstName": { "dataType": "string", "required": true },
-            "lastName": { "dataType": "string", "required": true },
-            "password": { "dataType": "string", "required": true },
-            "dateOfBirth": { "dataType": "datetime", "required": true },
         },
         "additionalProperties": false,
     },
@@ -202,7 +202,7 @@ function RegisterRoutes(app) {
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
-    app.get('/api/user/:userId/rooms', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.getRoomOfaUser)), function UserController_getRoomOfaUser(request, response, next) {
+    app.get('/api/user/:userId/rooms', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.getRoomOfAUser)), function UserController_getRoomOfAUser(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
@@ -215,7 +215,7 @@ function RegisterRoutes(app) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new user_controller_1.UserController();
                 yield templateService.apiHandler({
-                    methodName: 'getRoomOfaUser',
+                    methodName: 'getRoomOfAUser',
                     controller,
                     response,
                     next,
@@ -229,7 +229,7 @@ function RegisterRoutes(app) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.get('/api/user/single-user/:userId', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.getUserById)), function UserController_getUserById(request, response, next) {
+    app.get('/api/user/:userId', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.getUserById)), function UserController_getUserById(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 userId: { "in": "path", "name": "userId", "required": true, "dataType": "string" },
@@ -243,6 +243,34 @@ function RegisterRoutes(app) {
                 const controller = new user_controller_1.UserController();
                 yield templateService.apiHandler({
                     methodName: 'getUserById',
+                    controller,
+                    response,
+                    next,
+                    validatedArgs,
+                    successStatus: undefined,
+                });
+            }
+            catch (err) {
+                return next(err);
+            }
+        });
+    });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.patch('/api/user/:userId', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.postUserInformations)), function UserController_postUserInformations(request, response, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const args = {
+                userId: { "in": "path", "name": "userId", "required": true, "dataType": "string" },
+                req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
+                body: { "in": "body", "name": "body", "required": true, "ref": "RegisterUserRequest" },
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+            };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            let validatedArgs = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+                const controller = new user_controller_1.UserController();
+                yield templateService.apiHandler({
+                    methodName: 'postUserInformations',
                     controller,
                     response,
                     next,

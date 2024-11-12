@@ -88,10 +88,16 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                             code: "error_signIn_combination",
                         });
                     }
-                    const token = jsonwebtoken_1.default.sign({ id: user.id }, secretKey !== null && secretKey !== void 0 ? secretKey : "", {
-                        expiresIn: "2h",
+                    const tokenExists = yield authtoken_model_1.default.findOne({
+                        where: { user: user.id },
                     });
+                    if (tokenExists) {
+                        yield authtoken_model_1.default.destroy({ where: { id: tokenExists.id } });
+                    }
                     const refreshToken = yield authtoken_model_1.default.createToken(user);
+                    const token = jsonwebtoken_1.default.sign({ id: user.id }, secretKey !== null && secretKey !== void 0 ? secretKey : "", {
+                        expiresIn: node_process_1.default.env.JWT_EXPIRATION || "24h",
+                    });
                     this.setStatus(200);
                     return {
                         id: user.id,
@@ -196,7 +202,7 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 }
                 const forgotPasswordToken = yield authtokenForgotPassword_model_1.default.createForgotPasswordToken(user);
                 if (forgotPasswordToken) {
-                    const url = `${node_process_1.default.env.FRONTEND_URL}/auth/reset-password?token=${forgotPasswordToken}`;
+                    const url = `${node_process_1.default.env.FRONTEND_URL}/reset-password?token=${forgotPasswordToken}`;
                     const mailOptions = {
                         from: "contact@axelhuon.fr",
                         to: user.email,
@@ -257,6 +263,10 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 const user = yield user_model_1.default.findOne({ where: { id: tokenInformation.user } });
                 if (user) {
                     user.password = yield bcrypt.hash(newPassword, 12);
+                    /*Delete tokenInformation*/
+                    yield authtokenForgotPassword_model_1.default.destroy({
+                        where: { id: tokenInformation.id },
+                    });
                     yield user.save();
                     this.setStatus(200);
                     return {

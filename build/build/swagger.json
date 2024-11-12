@@ -60,6 +60,35 @@
                 "type": "object",
                 "additionalProperties": false
             },
+            "RegisterUserRequest": {
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "dateOfBirth": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "email",
+                    "firstName",
+                    "lastName",
+                    "password",
+                    "dateOfBirth"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
             "RoomAttributes": {
                 "properties": {
                     "id": {
@@ -164,35 +193,6 @@
                 "required": [
                     "message",
                     "code"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "RegisterUserRequest": {
-                "properties": {
-                    "email": {
-                        "type": "string"
-                    },
-                    "firstName": {
-                        "type": "string"
-                    },
-                    "lastName": {
-                        "type": "string"
-                    },
-                    "password": {
-                        "type": "string"
-                    },
-                    "dateOfBirth": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "required": [
-                    "email",
-                    "firstName",
-                    "lastName",
-                    "password",
-                    "dateOfBirth"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -352,7 +352,7 @@
     "paths": {
         "/user/{userId}/rooms": {
             "get": {
-                "operationId": "GetRoomOfaUser",
+                "operationId": "GetRoomOfAUser",
                 "responses": {
                     "200": {
                         "description": "Ok",
@@ -409,7 +409,7 @@
                 ]
             }
         },
-        "/user/single-user/{userId}": {
+        "/user/{userId}": {
             "get": {
                 "operationId": "GetUserById",
                 "responses": {
@@ -468,6 +468,75 @@
                         }
                     }
                 ]
+            },
+            "patch": {
+                "operationId": "PostUserInformations",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserClassGetResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "User"
+                ],
+                "security": [],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterUserRequest"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/room/create": {

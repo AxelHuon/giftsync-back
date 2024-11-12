@@ -29,7 +29,7 @@ exports.AuthTokenForgotPassword = AuthTokenForgotPassword;
 _a = AuthTokenForgotPassword;
 AuthTokenForgotPassword.createForgotPasswordToken = (user) => __awaiter(void 0, void 0, void 0, function* () {
     let expiredAt = new Date();
-    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("1"));
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("600"));
     let _token = (0, uuid_1.v4)();
     let refreshToken = yield _a.create({
         token: _token,

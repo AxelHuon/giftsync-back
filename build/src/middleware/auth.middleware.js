@@ -39,6 +39,15 @@ function jwtVerify(token) {
                     code: "token_invalid",
                 };
             }
+            const tokenExists = yield authtoken_model_1.default.findOne({
+                where: { user: decodedToken.id },
+            });
+            if (!tokenExists) {
+                return {
+                    message: "Invalid token",
+                    code: "token_invalid",
+                };
+            }
             return decodedToken;
         }
         catch (e) {
@@ -66,20 +75,6 @@ function securityMiddleware(req, res, next) {
         const decodedToken = yield jwtVerify(token);
         if ("code" in decodedToken) {
             return res.status(401).send(decodedToken);
-        }
-        const isGoodToken = yield authtoken_model_1.default.findOne({
-            where: { user: decodedToken.id },
-        });
-        if (!isGoodToken) {
-            return res
-                .status(401)
-                .send({ message: "Unauthorized", code: "token_invalid" });
-        }
-        const isExpired = yield authtoken_model_1.default.verifyAndDeleteExpiredToken(isGoodToken);
-        if (isExpired) {
-            return res
-                .status(401)
-                .send({ message: "Unauthorized", code: "token_expired" });
         }
         next();
     });
