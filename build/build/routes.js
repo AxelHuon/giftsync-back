@@ -17,6 +17,8 @@ const runtime_1 = require("@tsoa/runtime");
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const user_controller_1 = require("./../src/routes/user/user.controller");
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+const secret_santa_controller_1 = require("./../src/routes/secret-santa/secret-santa.controller");
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const room_controller_1 = require("./../src/routes/room/room.controller");
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const auth_controller_1 = require("./../src/routes/auth/auth.controller");
@@ -45,14 +47,58 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "RegisterUserRequest": {
+    "UserClassEditRequest": {
         "dataType": "refObject",
         "properties": {
-            "email": { "dataType": "string", "required": true },
             "firstName": { "dataType": "string", "required": true },
             "lastName": { "dataType": "string", "required": true },
-            "password": { "dataType": "string", "required": true },
             "dateOfBirth": { "dataType": "datetime", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UserClassEditPasswordResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "message": { "dataType": "string", "required": true },
+            "code": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UserClassEditPasswordRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "oldPassword": { "dataType": "string", "required": true },
+            "password": { "dataType": "string", "required": true },
+            "confirmPassword": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "SecretSantaResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "message": { "dataType": "string", "required": true },
+            "code": { "dataType": "double", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UserSecretSanta": {
+        "dataType": "refObject",
+        "properties": {
+            "name": { "dataType": "string", "required": true },
+            "email": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "SecretSantaRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "maxPrice": { "dataType": "double", "required": true },
+            "users": { "dataType": "array", "array": { "dataType": "refObject", "ref": "UserSecretSanta" }, "required": true },
         },
         "additionalProperties": false,
     },
@@ -115,6 +161,18 @@ const models = {
         "properties": {
             "message": { "dataType": "string", "required": true },
             "code": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "RegisterUserRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "email": { "dataType": "string", "required": true },
+            "firstName": { "dataType": "string", "required": true },
+            "lastName": { "dataType": "string", "required": true },
+            "password": { "dataType": "string", "required": true },
+            "dateOfBirth": { "dataType": "datetime", "required": true },
         },
         "additionalProperties": false,
     },
@@ -256,12 +314,12 @@ function RegisterRoutes(app) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.patch('/api/user/:userId', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.postUserInformations)), function UserController_postUserInformations(request, response, next) {
+    app.patch('/api/user/:userId', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.patchUserInformations)), function UserController_patchUserInformations(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 userId: { "in": "path", "name": "userId", "required": true, "dataType": "string" },
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
-                body: { "in": "body", "name": "body", "required": true, "ref": "RegisterUserRequest" },
+                body: { "in": "body", "name": "body", "required": true, "ref": "UserClassEditRequest" },
                 errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
             };
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -270,7 +328,62 @@ function RegisterRoutes(app) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new user_controller_1.UserController();
                 yield templateService.apiHandler({
-                    methodName: 'postUserInformations',
+                    methodName: 'patchUserInformations',
+                    controller,
+                    response,
+                    next,
+                    validatedArgs,
+                    successStatus: undefined,
+                });
+            }
+            catch (err) {
+                return next(err);
+            }
+        });
+    });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.patch('/api/user/:userId/edit-password', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.patchPassword)), function UserController_patchPassword(request, response, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const args = {
+                userId: { "in": "path", "name": "userId", "required": true, "dataType": "string" },
+                req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
+                body: { "in": "body", "name": "body", "required": true, "ref": "UserClassEditPasswordRequest" },
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+            };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            let validatedArgs = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+                const controller = new user_controller_1.UserController();
+                yield templateService.apiHandler({
+                    methodName: 'patchPassword',
+                    controller,
+                    response,
+                    next,
+                    validatedArgs,
+                    successStatus: undefined,
+                });
+            }
+            catch (err) {
+                return next(err);
+            }
+        });
+    });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.post('/api/secret-santa', ...((0, runtime_1.fetchMiddlewares)(secret_santa_controller_1.SecretSantaController)), ...((0, runtime_1.fetchMiddlewares)(secret_santa_controller_1.SecretSantaController.prototype.postSecretSanta)), function SecretSantaController_postSecretSanta(request, response, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const args = {
+                body: { "in": "body", "name": "body", "required": true, "ref": "SecretSantaRequest" },
+                req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+            };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            let validatedArgs = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+                const controller = new secret_santa_controller_1.SecretSantaController();
+                yield templateService.apiHandler({
+                    methodName: 'postSecretSanta',
                     controller,
                     response,
                     next,

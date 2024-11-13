@@ -1,4 +1,4 @@
-import { IsDate, IsString } from "class-validator";
+import { IsDateString, IsNotEmpty, IsString } from "class-validator";
 
 export interface UserClassGetResponse {
   id: string;
@@ -12,9 +12,29 @@ export interface UserClassGetResponse {
 
 export class UserClassEditRequest {
   @IsString()
+  @IsNotEmpty()
   firstName: string;
   @IsString()
+  @IsNotEmpty()
   lastName: string;
-  @IsDate()
+  @IsDateString({}, { message: "Invalid date format for birthDay" })
+  @IsNotEmpty()
   dateOfBirth: Date;
+}
+
+export class UserClassEditPasswordRequest {
+  @IsString()
+  @IsNotEmpty()
+  oldPassword: string;
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+  @IsString()
+  @IsNotEmpty()
+  confirmPassword: string;
+}
+
+export class UserClassEditPasswordResponse {
+  message: string;
+  code: string;
 }

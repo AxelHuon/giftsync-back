@@ -28,6 +28,7 @@ const validation_middleware_1 = require("../../middleware/validation.middleware"
 const user_model_1 = __importDefault(require("../../models/user.model"));
 const user_interface_1 = require("./user.interface");
 require("dotenv").config();
+const bcrypt = require("bcrypt");
 let UserController = class UserController extends tsoa_1.Controller {
     getRoomOfAUser(req, userId, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -73,23 +74,18 @@ let UserController = class UserController extends tsoa_1.Controller {
             }
         });
     }
-    /*Root to edit firstName lastName and dateOfBirth*/
-    postUserInformations(userId, req, body, errorResponse) {
+    patchUserInformations(userId, req, body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
                 const decodedToken = yield (0, auth_middleware_1.jwtVerify)(token);
-                if ("code" in decodedToken) {
-                    return errorResponse(401, decodedToken);
-                }
-                if (decodedToken.id !== userId) {
+                if ("code" in decodedToken || decodedToken.id !== userId) {
                     return errorResponse(401, {
                         message: "Unauthorized",
                         code: "unauthorized",
                     });
                 }
-                const user = yield user_model_1.default.findOne({
-                    where: { id: userId },
+                const user = yield user_model_1.default.findByPk(userId, {
                     attributes: { exclude: ["password"] },
                 });
                 if (!user) {
@@ -98,15 +94,59 @@ let UserController = class UserController extends tsoa_1.Controller {
                         code: "user_not_found",
                     });
                 }
-                /*get body data*/
                 const { firstName, lastName, dateOfBirth } = body;
-                /*update user data*/
                 yield user.update({ firstName, lastName, dateOfBirth });
                 this.setStatus(200);
                 return user;
             }
             catch (err) {
-                console.error("Error in getUserById:", err);
+                console.error("Error in patchUserInformations:", err);
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
+                });
+            }
+        });
+    }
+    patchPassword(userId, req, body, errorResponse) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const token = (0, auth_middleware_1.getToken)(req.headers);
+                const decodedToken = yield (0, auth_middleware_1.jwtVerify)(token);
+                if ("code" in decodedToken || decodedToken.id !== userId) {
+                    return errorResponse(401, {
+                        message: "Unauthorized",
+                        code: "unauthorized",
+                    });
+                }
+                const user = yield user_model_1.default.findByPk(userId, {
+                    attributes: { include: ["password"] },
+                });
+                if (!user) {
+                    return errorResponse(404, {
+                        message: "User not found",
+                        code: "user_not_found",
+                    });
+                }
+                const { oldPassword, password, confirmPassword } = body;
+                if (!(yield bcrypt.compare(oldPassword, user.password))) {
+                    return errorResponse(400, {
+                        message: "Incorrect old password",
+                        code: "incorrect_old_password",
+                    });
+                }
+                if (password !== confirmPassword) {
+                    return errorResponse(400, {
+                        message: "Passwords do not match",
+                        code: "passwords_do_not_match",
+                    });
+                }
+                const hashedPassword = yield bcrypt.hash(password, 12);
+                yield user.update({ password: hashedPassword });
+                return { message: "Password updated", code: "password_updated" };
+            }
+            catch (err) {
+                console.error("Error in patchPassword:", err);
                 return errorResponse(500, {
                     message: "Internal Server Error",
                     code: "internal_server_error",
@@ -140,7 +180,18 @@ __decorate([
     __param(1, (0, tsoa_1.Request)()),
     __param(2, (0, tsoa_1.Body)()),
     __param(3, (0, tsoa_1.Res)())
-], UserController.prototype, "postUserInformations", null);
+], UserController.prototype, "patchUserInformations", null);
+__decorate([
+    (0, tsoa_1.Patch)("{userId}/edit-password"),
+    (0, tsoa_1.Middlewares)([
+        auth_middleware_1.securityMiddleware,
+        (0, validation_middleware_1.validationBodyMiddleware)(user_interface_1.UserClassEditPasswordRequest),
+    ]),
+    __param(0, (0, tsoa_1.Path)()),
+    __param(1, (0, tsoa_1.Request)()),
+    __param(2, (0, tsoa_1.Body)()),
+    __param(3, (0, tsoa_1.Res)())
+], UserController.prototype, "patchPassword", null);
 exports.UserController = UserController = __decorate([
     (0, tsoa_1.Tags)("User"),
     (0, tsoa_1.Route)("user")

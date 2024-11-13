@@ -81,6 +81,42 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"UserClassEditPasswordResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"code": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserClassEditPasswordRequest": {
+				"properties": {
+					"oldPassword": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"confirmPassword": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"oldPassword",
+					"password",
+					"confirmPassword"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"SecretSantaResponse": {
 				"properties": {
 					"message": {
@@ -544,7 +580,7 @@
 				]
 			},
 			"patch": {
-				"operationId": "PostUserInformations",
+				"operationId": "PatchUserInformations",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -607,6 +643,87 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/UserClassEditRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/user/{userId}/edit-password": {
+			"patch": {
+				"operationId": "PatchPassword",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserClassEditPasswordResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UserClassEditPasswordRequest"
 							}
 						}
 					}

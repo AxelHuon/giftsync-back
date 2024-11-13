@@ -19,9 +19,16 @@ import {
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
 import User from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
-import { UserClassEditRequest, UserClassGetResponse } from "./user.interface";
+import {
+  UserClassEditPasswordRequest,
+  UserClassEditPasswordResponse,
+  UserClassEditRequest,
+  UserClassGetResponse,
+} from "./user.interface";
 
 require("dotenv").config();
+
+const bcrypt = require("bcrypt");
 
 @Tags("User")
 @Route("user")
@@ -79,13 +86,12 @@ export class UserController extends Controller {
     }
   }
 
-  /*Root to edit firstName lastName and dateOfBirth*/
   @Patch("{userId}")
   @Middlewares([
     securityMiddleware,
     validationBodyMiddleware(UserClassEditRequest),
   ])
-  public async postUserInformations(
+  public async patchUserInformations(
     @Path() userId: string,
     @Request() req: any,
     @Body() body: UserClassEditRequest,
@@ -94,17 +100,13 @@ export class UserController extends Controller {
     try {
       const token = getToken(req.headers);
       const decodedToken = await jwtVerify(token);
-      if ("code" in decodedToken) {
-        return errorResponse(401, decodedToken);
-      }
-      if (decodedToken.id !== userId) {
+      if ("code" in decodedToken || decodedToken.id !== userId) {
         return errorResponse(401, {
           message: "Unauthorized",
           code: "unauthorized",
         });
       }
-      const user = await User.findOne({
-        where: { id: userId },
+      const user = await User.findByPk(userId, {
         attributes: { exclude: ["password"] },
       });
       if (!user) {
@@ -113,14 +115,74 @@ export class UserController extends Controller {
           code: "user_not_found",
         });
       }
-      /*get body data*/
+
       const { firstName, lastName, dateOfBirth } = body;
-      /*update user data*/
       await user.update({ firstName, lastName, dateOfBirth });
+
       this.setStatus(200);
       return user;
     } catch (err) {
-      console.error("Error in getUserById:", err);
+      console.error("Error in patchUserInformations:", err);
+      return errorResponse(500, {
+        message: "Internal Server Error",
+        code: "internal_server_error",
+      });
+    }
+  }
+
+  @Patch("{userId}/edit-password")
+  @Middlewares([
+    securityMiddleware,
+    validationBodyMiddleware(UserClassEditPasswordRequest),
+  ])
+  public async patchPassword(
+    @Path() userId: string,
+    @Request() req: any,
+    @Body() body: UserClassEditPasswordRequest,
+    @Res() errorResponse: TsoaResponse<400 | 401 | 404 | 500, ErrorResponse>,
+  ): Promise<UserClassEditPasswordResponse> {
+    try {
+      const token = getToken(req.headers);
+      const decodedToken = await jwtVerify(token);
+      if ("code" in decodedToken || decodedToken.id !== userId) {
+        return errorResponse(401, {
+          message: "Unauthorized",
+          code: "unauthorized",
+        });
+      }
+
+      const user = await User.findByPk(userId, {
+        attributes: { include: ["password"] },
+      });
+      if (!user) {
+        return errorResponse(404, {
+          message: "User not found",
+          code: "user_not_found",
+        });
+      }
+
+      const { oldPassword, password, confirmPassword } = body;
+
+      if (!(await bcrypt.compare(oldPassword, user.password))) {
+        return errorResponse(400, {
+          message: "Incorrect old password",
+          code: "incorrect_old_password",
+        });
+      }
+
+      if (password !== confirmPassword) {
+        return errorResponse(400, {
+          message: "Passwords do not match",
+          code: "passwords_do_not_match",
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      await user.update({ password: hashedPassword });
+
+      return { message: "Password updated", code: "password_updated" };
+    } catch (err) {
+      console.error("Error in patchPassword:", err);
       return errorResponse(500, {
         message: "Internal Server Error",
         code: "internal_server_error",
