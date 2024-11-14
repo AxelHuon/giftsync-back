@@ -167,8 +167,6 @@ export class UserController extends Controller {
             code: "file_processing_error",
           });
         }
-
-        // Mise à jour du chemin dans la base de données
         updateData.profilePicture = `/uploads/${uniqueFilename}`;
       }
 

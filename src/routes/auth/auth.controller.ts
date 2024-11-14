@@ -31,6 +31,9 @@ import {
 } from "./auth.interface";
 
 const bcrypt = require("bcrypt");
+require("dotenv").config();
+
+const frontUrl = process.env.FRONTEND_URL;
 
 @Tags("Auth")
 @Route("auth")
@@ -242,7 +245,7 @@ export class AuthController extends Controller {
       const forgotPasswordToken =
         await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
-        const url = `${process.env.FRONTEND_URL}/reset-password?token=${forgotPasswordToken}`;
+        const url = `${process.env.FRONTEND_URL}/auth/reset-password?token=${forgotPasswordToken}`;
         const mailOptions = {
           from: "contact@axelhuon.fr",
           to: user.email,
@@ -257,7 +260,6 @@ export class AuthController extends Controller {
             code: "email_sent",
           };
         } catch (error) {
-          console.log(error);
           return errorResponse(500, {
             message: "Error sending email",
             code: "error_sending_email",

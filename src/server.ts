@@ -46,7 +46,6 @@ app.use(function errorHandler(
       details: err?.fields,
     });
   }
-  // ... gestion d'autres types d'erreurs
 });
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
