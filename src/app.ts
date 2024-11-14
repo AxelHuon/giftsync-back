@@ -7,7 +7,7 @@ const cors = require("cors");
 export const app = express();
 
 app.use(cors());
-app.use(apiKeyMiddleware);
+app.use("/api", apiKeyMiddleware);
 app.use(
   urlencoded({
     extended: true,
