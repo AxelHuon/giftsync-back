@@ -1,6 +1,9 @@
+import * as fs from "node:fs";
+import path from "path";
 import {
   Body,
   Controller,
+  FormField,
   Get,
   Middlewares,
   Patch,
@@ -10,6 +13,7 @@ import {
   Route,
   Tags,
   TsoaResponse,
+  UploadedFile,
 } from "tsoa";
 import {
   getToken,
@@ -22,7 +26,6 @@ import { ErrorResponse } from "../../types/Error";
 import {
   UserClassEditPasswordRequest,
   UserClassEditPasswordResponse,
-  UserClassEditRequest,
   UserClassGetResponse,
 } from "./user.interface";
 
@@ -87,44 +90,97 @@ export class UserController extends Controller {
   }
 
   @Patch("{userId}")
-  @Middlewares([
-    securityMiddleware,
-    validationBodyMiddleware(UserClassEditRequest),
-  ])
+  @Middlewares([securityMiddleware])
   public async patchUserInformations(
+    @Res() errorResponse: TsoaResponse<400 | 401 | 404 | 500, ErrorResponse>,
     @Path() userId: string,
     @Request() req: any,
-    @Body() body: UserClassEditRequest,
-    @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
+    @FormField() firstName?: string,
+    @FormField() lastName?: string,
+    @FormField() dateOfBirth?: string,
+    @UploadedFile() profilePicture?: Express.Multer.File,
   ): Promise<UserClassGetResponse> {
     try {
       const token = getToken(req.headers);
       const decodedToken = await jwtVerify(token);
+
       if ("code" in decodedToken || decodedToken.id !== userId) {
         return errorResponse(401, {
-          message: "Unauthorized",
+          message: "Non autorisé",
           code: "unauthorized",
         });
       }
+
       const user = await User.findByPk(userId, {
         attributes: { exclude: ["password"] },
       });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "Utilisateur non trouvé",
           code: "user_not_found",
         });
       }
 
-      const { firstName, lastName, dateOfBirth } = body;
-      await user.update({ firstName, lastName, dateOfBirth });
+      const updateData: Partial<User> = {};
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (dateOfBirth !== undefined)
+        updateData.dateOfBirth = new Date(dateOfBirth);
+
+      if (profilePicture) {
+        // Vérification du type de fichier
+        const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+        if (!allowedMimeTypes.includes(profilePicture.mimetype)) {
+          return errorResponse(400, {
+            message: "Type de fichier non autorisé",
+            code: "invalid_file_type",
+          });
+        }
+
+        // Vérification de la taille du fichier (par exemple, limite à 5 MB)
+        const maxSize = 5 * 1024 * 1024; // 5 MB
+        if (profilePicture.size > maxSize) {
+          return errorResponse(400, {
+            message: "Fichier trop volumineux",
+            code: "file_too_large",
+          });
+        }
+
+        // Génération d'un nom de fichier unique
+        const fileExtension = path.extname(profilePicture.originalname);
+        const uniqueFilename = `${crypto.randomUUID()}${fileExtension}`;
+        const uploadDir = path.join(__dirname, "../../uploads");
+        const filePath = path.join(uploadDir, uniqueFilename);
+
+        // Création du répertoire s'il n'existe pas
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        // Écriture du fichier à partir du buffer
+        try {
+          await fs.promises.writeFile(filePath, profilePicture.buffer);
+        } catch (err) {
+          console.error("Erreur lors de l'écriture du fichier :", err);
+          return errorResponse(500, {
+            message: "Erreur lors du traitement de l'image",
+            code: "file_processing_error",
+          });
+        }
+
+        // Mise à jour du chemin dans la base de données
+        updateData.profilePicture = `/uploads/${uniqueFilename}`;
+      }
+
+      await user.update(updateData as any);
+      await user.reload();
 
       this.setStatus(200);
       return user;
     } catch (err) {
-      console.error("Error in patchUserInformations:", err);
+      console.error("Erreur dans patchUserInformations :", err);
       return errorResponse(500, {
-        message: "Internal Server Error",
+        message: "Erreur interne du serveur",
         code: "internal_server_error",
       });
     }

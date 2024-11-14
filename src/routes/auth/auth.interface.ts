@@ -56,6 +56,7 @@ export interface SignInUserResponse {
   refreshToken: string;
   firstName: string;
   lastName: string;
+  profilePicture?: string;
   dateOfBirth: Date;
   email: string;
 }

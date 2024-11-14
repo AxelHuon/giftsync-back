@@ -16,6 +16,7 @@ export type UserAttributes = {
   password: string;
   dateOfBirth: Date;
   createdAt?: string;
+  profilePicture?: string;
   updatedAt?: string;
 };
 type UserCreationAttributes = Optional<UserAttributes, "id">;
@@ -27,6 +28,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
   declare email: string;
   declare password: string;
   declare dateOfBirth: Date;
+  declare profilePicture?: string;
   declare createdAt?: Date;
   declare updatedAt?: Date;
   declare getRooms: HasManyGetAssociationsMixin<Room[]>;
@@ -42,6 +44,7 @@ User.init(
     },
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
+    profilePicture: DataTypes.STRING,
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     dateOfBirth: DataTypes.DATEONLY,

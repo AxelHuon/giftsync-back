@@ -4,7 +4,40 @@
   "controllerPathGlobs": ["src/routes/**"],
   "spec": {
     "outputDirectory": "build",
-    "specVersion": 3
+    "specVersion": 3,
+    "paths": {
+      "/users/{userId}": {
+        "patch": {
+          "consumes": ["multipart/form-data"],
+          "parameters": [
+            {
+              "in": "formData",
+              "name": "firstName",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "in": "formData",
+              "name": "lastName",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "in": "formData",
+              "name": "dateOfBirth",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "in": "formData",
+              "name": "profilePicture",
+              "required": false,
+              "type": "file"
+            }
+          ]
+        }
+      }
+    }
   },
   "routes": {
     "routesDir": "build",

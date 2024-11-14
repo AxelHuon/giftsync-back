@@ -11,6 +11,8 @@ import { RoomController } from './../src/routes/room/room.controller';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { AuthController } from './../src/routes/auth/auth.controller';
 import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'express';
+const multer = require('multer');
+
 
 
 
@@ -36,16 +38,6 @@ const models: TsoaRoute.Models = {
             "dateOfBirth": {"dataType":"datetime","required":true},
             "createdAt": {"dataType":"datetime"},
             "updatedAt": {"dataType":"datetime"},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "UserClassEditRequest": {
-        "dataType": "refObject",
-        "properties": {
-            "firstName": {"dataType":"string","required":true},
-            "lastName": {"dataType":"string","required":true},
-            "dateOfBirth": {"dataType":"datetime","required":true},
         },
         "additionalProperties": false,
     },
@@ -178,6 +170,7 @@ const models: TsoaRoute.Models = {
             "refreshToken": {"dataType":"string","required":true},
             "firstName": {"dataType":"string","required":true},
             "lastName": {"dataType":"string","required":true},
+            "profilePicture": {"dataType":"string"},
             "dateOfBirth": {"dataType":"datetime","required":true},
             "email": {"dataType":"string","required":true},
         },
@@ -253,13 +246,14 @@ const templateService = new ExpressTemplateService(models, {"noImplicitAdditiona
 
 
 
-export function RegisterRoutes(app: Router) {
+export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof multer>}) {
 
     // ###########################################################################################################
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
 
+    const upload = opts?.multer ||  multer({"limits":{"fileSize":8388608}});
 
     
         app.get('/api/user/:userId/rooms',
@@ -327,15 +321,19 @@ export function RegisterRoutes(app: Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.patch('/api/user/:userId',
+            upload.fields([{"name":"profilePicture","maxCount":1,"multiple":false}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
             ...(fetchMiddlewares<RequestHandler>(UserController.prototype.patchUserInformations)),
 
             async function UserController_patchUserInformations(request: ExRequest, response: ExResponse, next: any) {
             const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    errorResponse: {"in":"res","name":"500","required":true,"ref":"ErrorResponse"},
                     userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
                     req: {"in":"request","name":"req","required":true,"dataType":"object"},
-                    body: {"in":"body","name":"body","required":true,"ref":"UserClassEditRequest"},
-                    errorResponse: {"in":"res","name":"500","required":true,"ref":"ErrorResponse"},
+                    firstName: {"in":"formData","name":"firstName","dataType":"string"},
+                    lastName: {"in":"formData","name":"lastName","dataType":"string"},
+                    dateOfBirth: {"in":"formData","name":"dateOfBirth","dataType":"string"},
+                    profilePicture: {"in":"formData","name":"profilePicture","dataType":"file"},
             };
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

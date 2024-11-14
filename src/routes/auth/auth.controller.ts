@@ -119,6 +119,7 @@ export class AuthController extends Controller {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          profilePicture: user?.profilePicture,
           accessToken: token,
           dateOfBirth: user.dateOfBirth,
           refreshToken,
