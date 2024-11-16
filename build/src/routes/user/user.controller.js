@@ -1,9 +1,32 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
@@ -22,6 +45,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
+const fs = __importStar(require("node:fs"));
+const path_1 = __importDefault(require("path"));
 const tsoa_1 = require("tsoa");
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
@@ -74,14 +99,14 @@ let UserController = class UserController extends tsoa_1.Controller {
             }
         });
     }
-    patchUserInformations(userId, req, body, errorResponse) {
+    patchUserInformations(errorResponse, userId, req, firstName, lastName, dateOfBirth, profilePicture) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
                 const decodedToken = yield (0, auth_middleware_1.jwtVerify)(token);
                 if ("code" in decodedToken || decodedToken.id !== userId) {
                     return errorResponse(401, {
-                        message: "Unauthorized",
+                        message: "Non autorisé",
                         code: "unauthorized",
                     });
                 }
@@ -90,19 +115,65 @@ let UserController = class UserController extends tsoa_1.Controller {
                 });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "Utilisateur non trouvé",
                         code: "user_not_found",
                     });
                 }
-                const { firstName, lastName, dateOfBirth } = body;
-                yield user.update({ firstName, lastName, dateOfBirth });
+                const updateData = {};
+                if (firstName !== undefined)
+                    updateData.firstName = firstName;
+                if (lastName !== undefined)
+                    updateData.lastName = lastName;
+                if (dateOfBirth !== undefined)
+                    updateData.dateOfBirth = new Date(dateOfBirth);
+                if (profilePicture) {
+                    // Vérification du type de fichier
+                    const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+                    if (!allowedMimeTypes.includes(profilePicture.mimetype)) {
+                        return errorResponse(400, {
+                            message: "Type de fichier non autorisé",
+                            code: "invalid_file_type",
+                        });
+                    }
+                    // Vérification de la taille du fichier (par exemple, limite à 5 MB)
+                    const maxSize = 5 * 1024 * 1024; // 5 MB
+                    if (profilePicture.size > maxSize) {
+                        return errorResponse(400, {
+                            message: "Fichier trop volumineux",
+                            code: "file_too_large",
+                        });
+                    }
+                    // Génération d'un nom de fichier unique
+                    const fileExtension = path_1.default.extname(profilePicture.originalname);
+                    const uniqueFilename = `${crypto.randomUUID()}${fileExtension}`;
+                    const uploadDir = path_1.default.join(__dirname, "../../uploads");
+                    const filePath = path_1.default.join(uploadDir, uniqueFilename);
+                    // Création du répertoire s'il n'existe pas
+                    if (!fs.existsSync(uploadDir)) {
+                        fs.mkdirSync(uploadDir, { recursive: true });
+                    }
+                    // Écriture du fichier à partir du buffer
+                    try {
+                        yield fs.promises.writeFile(filePath, profilePicture.buffer);
+                    }
+                    catch (err) {
+                        console.error("Erreur lors de l'écriture du fichier :", err);
+                        return errorResponse(500, {
+                            message: "Erreur lors du traitement de l'image",
+                            code: "file_processing_error",
+                        });
+                    }
+                    updateData.profilePicture = `/uploads/${uniqueFilename}`;
+                }
+                yield user.update(updateData);
+                yield user.reload();
                 this.setStatus(200);
                 return user;
             }
             catch (err) {
-                console.error("Error in patchUserInformations:", err);
+                console.error("Erreur dans patchUserInformations :", err);
                 return errorResponse(500, {
-                    message: "Internal Server Error",
+                    message: "Erreur interne du serveur",
                     code: "internal_server_error",
                 });
             }
@@ -172,14 +243,14 @@ __decorate([
 ], UserController.prototype, "getUserById", null);
 __decorate([
     (0, tsoa_1.Patch)("{userId}"),
-    (0, tsoa_1.Middlewares)([
-        auth_middleware_1.securityMiddleware,
-        (0, validation_middleware_1.validationBodyMiddleware)(user_interface_1.UserClassEditRequest),
-    ]),
-    __param(0, (0, tsoa_1.Path)()),
-    __param(1, (0, tsoa_1.Request)()),
-    __param(2, (0, tsoa_1.Body)()),
-    __param(3, (0, tsoa_1.Res)())
+    (0, tsoa_1.Middlewares)([auth_middleware_1.securityMiddleware]),
+    __param(0, (0, tsoa_1.Res)()),
+    __param(1, (0, tsoa_1.Path)()),
+    __param(2, (0, tsoa_1.Request)()),
+    __param(3, (0, tsoa_1.FormField)()),
+    __param(4, (0, tsoa_1.FormField)()),
+    __param(5, (0, tsoa_1.FormField)()),
+    __param(6, (0, tsoa_1.UploadedFile)())
 ], UserController.prototype, "patchUserInformations", null);
 __decorate([
     (0, tsoa_1.Patch)("{userId}/edit-password"),

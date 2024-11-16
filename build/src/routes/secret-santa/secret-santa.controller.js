@@ -38,7 +38,7 @@ let SecretSantaController = class SecretSantaController extends tsoa_1.Controlle
                         code: "invalid_participant_count",
                     });
                 }
-                yield this.assignSecretSanta(users, body.maxPrice);
+                yield this.assignSecretSanta(users, body.maxPrice, body.title);
                 return {
                     message: "Secret Santa request has been created and emails sent",
                     code: 200,
@@ -53,27 +53,52 @@ let SecretSantaController = class SecretSantaController extends tsoa_1.Controlle
             }
         });
     }
-    sendEmail(to, subject, text) {
+    sendEmail(to, subject, html) {
         return __awaiter(this, void 0, void 0, function* () {
             yield mailConfig_1.default.sendMail({
-                from: "contact@axelhuon.fr",
+                from: "noreply@giftsync.fr",
                 to,
                 subject,
-                text,
+                html,
             });
         });
     }
     shuffleUsers(users) {
         return [...users].sort(() => Math.random() - 0.5);
     }
-    assignSecretSanta(users, maxPrice) {
+    generateEmailContent(giver, receiver, maxPrice, title) {
+        return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Secret Santa - ${title}</title>
+    </head>
+    <body style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAFAFA; color: #1F1F1F;">
+        <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 250px; max-width: 100%; height: auto; margin-bottom: 20px;">
+            <h1 style="color: #4747FF; margin: 0; font-size: 24px; font-weight: bold;">${title} - Secret Santa</h1>
+        </div>
+        <div style="text-align: center; padding-top: 20px;">
+            <p style="margin-bottom: 15px;">Bonjour <strong style="font-weight: bold;">${giver.name}</strong>,</p>
+            <p style="margin-bottom: 15px;">Vous avez été choisi pour offrir un cadeau à <strong style="font-weight: bold;">${receiver.name}</strong> pour le Secret Santa.</p>
+            <p style="margin-bottom: 15px;">Le prix maximum du cadeau est fixé à <strong style="font-weight: bold;">${maxPrice}€</strong>.</p>
+            <p style="margin-bottom: 15px;">Joyeuses fêtes et amusez-vous bien !</p>
+        </div>
+    </body>
+    </html>
+  `;
+    }
+    assignSecretSanta(users, maxPrice, title) {
         return __awaiter(this, void 0, void 0, function* () {
             const shuffled = this.shuffleUsers(users);
             for (let i = 0; i < shuffled.length; i++) {
                 const giver = shuffled[i];
                 const receiver = shuffled[(i + 1) % shuffled.length];
                 console.log(`Giver: ${giver.name} - Receiver: ${receiver.name}`);
-                yield this.sendEmail(giver.email, "Votre assignation Secret Santa", `Bonjour ${giver.name}, vous devez offrir un cadeau à ${receiver.name} pour le Secret Santa. Le prix maximum est de ${maxPrice}€.`);
+                const htmlContent = this.generateEmailContent(giver, receiver, maxPrice, title);
+                yield this.sendEmail(giver.email, "Secret Santa - " + title, htmlContent);
             }
         });
     }

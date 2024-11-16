@@ -26,6 +26,7 @@ User.init({
     },
     firstName: sequelize_1.DataTypes.STRING,
     lastName: sequelize_1.DataTypes.STRING,
+    profilePicture: sequelize_1.DataTypes.STRING,
     email: sequelize_1.DataTypes.STRING,
     password: sequelize_1.DataTypes.STRING,
     dateOfBirth: sequelize_1.DataTypes.DATEONLY,

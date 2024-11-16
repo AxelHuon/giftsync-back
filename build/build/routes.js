@@ -22,6 +22,7 @@ const secret_santa_controller_1 = require("./../src/routes/secret-santa/secret-s
 const room_controller_1 = require("./../src/routes/room/room.controller");
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const auth_controller_1 = require("./../src/routes/auth/auth.controller");
+const multer = require('multer');
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 const models = {
     "ErrorResponse": {
@@ -43,16 +44,6 @@ const models = {
             "dateOfBirth": { "dataType": "datetime", "required": true },
             "createdAt": { "dataType": "datetime" },
             "updatedAt": { "dataType": "datetime" },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "UserClassEditRequest": {
-        "dataType": "refObject",
-        "properties": {
-            "firstName": { "dataType": "string", "required": true },
-            "lastName": { "dataType": "string", "required": true },
-            "dateOfBirth": { "dataType": "datetime", "required": true },
         },
         "additionalProperties": false,
     },
@@ -99,6 +90,7 @@ const models = {
         "properties": {
             "maxPrice": { "dataType": "double", "required": true },
             "users": { "dataType": "array", "array": { "dataType": "refObject", "ref": "UserSecretSanta" }, "required": true },
+            "title": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
@@ -185,6 +177,7 @@ const models = {
             "refreshToken": { "dataType": "string", "required": true },
             "firstName": { "dataType": "string", "required": true },
             "lastName": { "dataType": "string", "required": true },
+            "profilePicture": { "dataType": "string" },
             "dateOfBirth": { "dataType": "datetime", "required": true },
             "email": { "dataType": "string", "required": true },
         },
@@ -255,11 +248,12 @@ const models = {
 };
 const templateService = new runtime_1.ExpressTemplateService(models, { "noImplicitAdditionalProperties": "throw-on-extras", "bodyCoercion": true });
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-function RegisterRoutes(app) {
+function RegisterRoutes(app, opts) {
     // ###########################################################################################################
     //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
     //      Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
     // ###########################################################################################################
+    const upload = (opts === null || opts === void 0 ? void 0 : opts.multer) || multer({ "limits": { "fileSize": 8388608 } });
     app.get('/api/user/:userId/rooms', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.getRoomOfAUser)), function UserController_getRoomOfAUser(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
@@ -314,13 +308,16 @@ function RegisterRoutes(app) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.patch('/api/user/:userId', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.patchUserInformations)), function UserController_patchUserInformations(request, response, next) {
+    app.patch('/api/user/:userId', upload.fields([{ "name": "profilePicture", "maxCount": 1, "multiple": false }]), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.patchUserInformations)), function UserController_patchUserInformations(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
                 userId: { "in": "path", "name": "userId", "required": true, "dataType": "string" },
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
-                body: { "in": "body", "name": "body", "required": true, "ref": "UserClassEditRequest" },
-                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+                firstName: { "in": "formData", "name": "firstName", "dataType": "string" },
+                lastName: { "in": "formData", "name": "lastName", "dataType": "string" },
+                dateOfBirth: { "in": "formData", "name": "dateOfBirth", "dataType": "string" },
+                profilePicture: { "in": "formData", "name": "profilePicture", "dataType": "file" },
             };
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
             let validatedArgs = [];

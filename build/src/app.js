@@ -30,7 +30,7 @@ const apikey_middleware_1 = require("./middleware/apikey.middleware");
 const cors = require("cors");
 exports.app = (0, express_1.default)();
 exports.app.use(cors());
-exports.app.use(apikey_middleware_1.apiKeyMiddleware);
+exports.app.use("/api", apikey_middleware_1.apiKeyMiddleware);
 exports.app.use((0, express_1.urlencoded)({
     extended: true,
 }));

@@ -12,25 +12,31 @@ class UserClassEditRequest {
 }
 exports.UserClassEditRequest = UserClassEditRequest;
 __decorate([
-    (0, class_validator_1.IsString)()
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)()
 ], UserClassEditRequest.prototype, "firstName", void 0);
 __decorate([
-    (0, class_validator_1.IsString)()
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)()
 ], UserClassEditRequest.prototype, "lastName", void 0);
 __decorate([
-    (0, class_validator_1.IsDateString)({}, { message: "Invalid date format for birthDay" })
+    (0, class_validator_1.IsDateString)({}, { message: "Invalid date format for birthDay" }),
+    (0, class_validator_1.IsNotEmpty)()
 ], UserClassEditRequest.prototype, "dateOfBirth", void 0);
 class UserClassEditPasswordRequest {
 }
 exports.UserClassEditPasswordRequest = UserClassEditPasswordRequest;
 __decorate([
-    (0, class_validator_1.IsString)()
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)()
 ], UserClassEditPasswordRequest.prototype, "oldPassword", void 0);
 __decorate([
-    (0, class_validator_1.IsString)()
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)()
 ], UserClassEditPasswordRequest.prototype, "password", void 0);
 __decorate([
-    (0, class_validator_1.IsString)()
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)()
 ], UserClassEditPasswordRequest.prototype, "confirmPassword", void 0);
 class UserClassEditPasswordResponse {
 }

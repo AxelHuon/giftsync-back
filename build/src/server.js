@@ -35,10 +35,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
 const node_process_1 = __importDefault(require("node:process"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const tsoa_1 = require("tsoa");
 const app_1 = require("./app");
 const connection_1 = __importDefault(require("./config/connection"));
 require("dotenv/config");
@@ -60,9 +62,20 @@ app_1.app.get("/swagger-json", (req, res) => {
         }
     });
 });
+app_1.app.use(function errorHandler(err, req, res, next) {
+    if (err instanceof tsoa_1.ValidateError) {
+        console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
+        return res.status(422).json({
+            message: "Validation Failed",
+            details: err === null || err === void 0 ? void 0 : err.fields,
+        });
+    }
+});
+app_1.app.use("/uploads", express_1.default.static(path.join(__dirname, "uploads")));
+app_1.app.use("/images", express_1.default.static(path.join(__dirname, "images")));
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield connection_1.default.sync();
+        yield connection_1.default.sync({ force: false });
         app_1.app.listen(port, () => {
             console.log(`app started on port ${port}`);
         });
