@@ -140,11 +140,15 @@
 							"$ref": "#/components/schemas/UserSecretSanta"
 						},
 						"type": "array"
+					},
+					"title": {
+						"type": "string"
 					}
 				},
 				"required": [
 					"maxPrice",
-					"users"
+					"users",
+					"title"
 				],
 				"type": "object",
 				"additionalProperties": false

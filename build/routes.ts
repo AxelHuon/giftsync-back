@@ -84,6 +84,7 @@ const models: TsoaRoute.Models = {
         "properties": {
             "maxPrice": {"dataType":"double","required":true},
             "users": {"dataType":"array","array":{"dataType":"refObject","ref":"UserSecretSanta"},"required":true},
+            "title": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },

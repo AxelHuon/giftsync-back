@@ -49,6 +49,7 @@ app.use(function errorHandler(
 });
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 const start = async (): Promise<void> => {
   try {

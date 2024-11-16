@@ -247,7 +247,7 @@ export class AuthController extends Controller {
       if (forgotPasswordToken) {
         const url = `${process.env.FRONTEND_URL}/auth/reset-password?token=${forgotPasswordToken}`;
         const mailOptions = {
-          from: "contact@axelhuon.fr",
+          from: "noreply@giftsync.fr",
           to: user.email,
           subject: "GiftSync - Mot de passe oublié",
           html: `<a href="${url}">Ré initialiser votre mot de passe</a>`,

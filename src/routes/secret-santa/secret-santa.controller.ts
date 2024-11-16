@@ -32,14 +32,13 @@ export class SecretSantaController extends Controller {
   ): Promise<SecretSantaResponse> {
     try {
       const users = body.users;
-
       if (users.length < 2) {
         return errorResponse(400, {
           message: "Il faut au moins deux participants pour le Secret Santa.",
           code: "invalid_participant_count",
         });
       }
-      await this.assignSecretSanta(users, body.maxPrice);
+      await this.assignSecretSanta(users, body.maxPrice, body.title);
       return {
         message: "Secret Santa request has been created and emails sent",
         code: 200,
@@ -59,7 +58,7 @@ export class SecretSantaController extends Controller {
     text: string,
   ): Promise<void> {
     await transport.sendMail({
-      from: "contact@axelhuon.fr",
+      from: "noreply@giftsync.fr",
       to,
       subject,
       text,
@@ -73,6 +72,7 @@ export class SecretSantaController extends Controller {
   private async assignSecretSanta(
     users: UserSecretSanta[],
     maxPrice: number,
+    title: string,
   ): Promise<void> {
     const shuffled = this.shuffleUsers(users);
     for (let i = 0; i < shuffled.length; i++) {
@@ -81,7 +81,7 @@ export class SecretSantaController extends Controller {
       console.log(`Giver: ${giver.name} - Receiver: ${receiver.name}`);
       await this.sendEmail(
         giver.email,
-        "Votre assignation Secret Santa",
+        "Secret Sanata - " + title,
         `Bonjour ${giver.name}, vous devez offrir un cadeau à ${receiver.name} pour le Secret Santa. Le prix maximum est de ${maxPrice}€.`,
       );
     }
