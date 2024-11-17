@@ -42,8 +42,18 @@ const models = {
             "firstName": { "dataType": "string", "required": true },
             "lastName": { "dataType": "string", "required": true },
             "dateOfBirth": { "dataType": "datetime", "required": true },
+            "profilePicture": { "dataType": "string" },
             "createdAt": { "dataType": "datetime" },
             "updatedAt": { "dataType": "datetime" },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UserClassEditResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "message": { "dataType": "string", "required": true },
+            "code": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
@@ -308,7 +318,7 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.patch('/api/user/:userId', upload.fields([{ "name": "profilePicture", "maxCount": 1, "multiple": false }]), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.patchUserInformations)), function UserController_patchUserInformations(request, response, next) {
+    app.patch('/api/user/:userId', upload.fields([{ "name": "profilePicture", "maxCount": 1, "multiple": false }]), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.patchUser)), function UserController_patchUser(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
@@ -325,7 +335,7 @@ function RegisterRoutes(app, opts) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new user_controller_1.UserController();
                 yield templateService.apiHandler({
-                    methodName: 'patchUserInformations',
+                    methodName: 'patchUser',
                     controller,
                     response,
                     next,

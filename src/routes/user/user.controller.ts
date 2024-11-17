@@ -15,6 +15,7 @@ import {
   TsoaResponse,
   UploadedFile,
 } from "tsoa";
+
 import {
   getToken,
   jwtVerify,
@@ -26,6 +27,7 @@ import { ErrorResponse } from "../../types/Error";
 import {
   UserClassEditPasswordRequest,
   UserClassEditPasswordResponse,
+  UserClassEditResponse,
   UserClassGetResponse,
 } from "./user.interface";
 
@@ -91,22 +93,22 @@ export class UserController extends Controller {
 
   @Patch("{userId}")
   @Middlewares([securityMiddleware])
-  public async patchUserInformations(
+  public async patchUser(
     @Res() errorResponse: TsoaResponse<400 | 401 | 404 | 500, ErrorResponse>,
     @Path() userId: string,
     @Request() req: any,
     @FormField() firstName?: string,
     @FormField() lastName?: string,
-    @FormField() dateOfBirth?: string,
+    @FormField() dateOfBirth?: Date,
     @UploadedFile() profilePicture?: Express.Multer.File,
-  ): Promise<UserClassGetResponse> {
+  ): Promise<UserClassEditResponse> {
     try {
       const token = getToken(req.headers);
       const decodedToken = await jwtVerify(token);
 
       if ("code" in decodedToken || decodedToken.id !== userId) {
         return errorResponse(401, {
-          message: "Non autorisé",
+          message: "Unauthorized",
           code: "unauthorized",
         });
       }
@@ -116,7 +118,7 @@ export class UserController extends Controller {
       });
       if (!user) {
         return errorResponse(404, {
-          message: "Utilisateur non trouvé",
+          message: "User not found",
           code: "user_not_found",
         });
       }
@@ -129,7 +131,7 @@ export class UserController extends Controller {
 
       if (profilePicture) {
         // Vérification du type de fichier
-        const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+        const allowedMimeTypes = ["image/jpeg", "image/png"];
         if (!allowedMimeTypes.includes(profilePicture.mimetype)) {
           return errorResponse(400, {
             message: "Type de fichier non autorisé",
@@ -149,7 +151,7 @@ export class UserController extends Controller {
         // Génération d'un nom de fichier unique
         const fileExtension = path.extname(profilePicture.originalname);
         const uniqueFilename = `${crypto.randomUUID()}${fileExtension}`;
-        const uploadDir = path.join(__dirname, "../../uploads");
+        const uploadDir = path.join(__dirname, "../../uploads/profil-pictures");
         const filePath = path.join(uploadDir, uniqueFilename);
 
         // Création du répertoire s'il n'existe pas
@@ -167,18 +169,30 @@ export class UserController extends Controller {
             code: "file_processing_error",
           });
         }
-        updateData.profilePicture = `/uploads/${uniqueFilename}`;
+
+        /*If user have already a profile picture delete it*/
+        if (user.profilePicture) {
+          const oldProfilePicturePath = path.join(
+            __dirname,
+            "../../uploads/profil-pictures",
+            user.profilePicture.split("/").pop(),
+          );
+          if (fs.existsSync(oldProfilePicturePath)) {
+            fs.unlinkSync(oldProfilePicturePath);
+          }
+        }
+
+        updateData.profilePicture = `/uploads/profil-pictures/${uniqueFilename}`;
       }
 
       await user.update(updateData as any);
       await user.reload();
 
-      this.setStatus(200);
-      return user;
+      return { message: "User updated", code: "user_updated" };
     } catch (err) {
-      console.error("Erreur dans patchUserInformations :", err);
+      console.error("Error in patchUser:", err);
       return errorResponse(500, {
-        message: "Erreur interne du serveur",
+        message: "Internal Server Error",
         code: "internal_server_error",
       });
     }

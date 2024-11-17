@@ -6,6 +6,7 @@ export interface UserClassGetResponse {
   firstName: string;
   lastName: string;
   dateOfBirth: Date;
+  profilePicture?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -20,6 +21,11 @@ export class UserClassEditRequest {
   @IsDateString({}, { message: "Invalid date format for birthDay" })
   @IsNotEmpty()
   dateOfBirth: Date;
+}
+
+export class UserClassEditResponse {
+  message: string;
+  code: string;
 }
 
 export class UserClassEditPasswordRequest {

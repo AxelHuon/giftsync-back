@@ -99,14 +99,14 @@ let UserController = class UserController extends tsoa_1.Controller {
             }
         });
     }
-    patchUserInformations(errorResponse, userId, req, firstName, lastName, dateOfBirth, profilePicture) {
+    patchUser(errorResponse, userId, req, firstName, lastName, dateOfBirth, profilePicture) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
                 const decodedToken = yield (0, auth_middleware_1.jwtVerify)(token);
                 if ("code" in decodedToken || decodedToken.id !== userId) {
                     return errorResponse(401, {
-                        message: "Non autorisé",
+                        message: "Unauthorized",
                         code: "unauthorized",
                     });
                 }
@@ -115,7 +115,7 @@ let UserController = class UserController extends tsoa_1.Controller {
                 });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "Utilisateur non trouvé",
+                        message: "User not found",
                         code: "user_not_found",
                     });
                 }
@@ -128,7 +128,7 @@ let UserController = class UserController extends tsoa_1.Controller {
                     updateData.dateOfBirth = new Date(dateOfBirth);
                 if (profilePicture) {
                     // Vérification du type de fichier
-                    const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+                    const allowedMimeTypes = ["image/jpeg", "image/png"];
                     if (!allowedMimeTypes.includes(profilePicture.mimetype)) {
                         return errorResponse(400, {
                             message: "Type de fichier non autorisé",
@@ -146,7 +146,7 @@ let UserController = class UserController extends tsoa_1.Controller {
                     // Génération d'un nom de fichier unique
                     const fileExtension = path_1.default.extname(profilePicture.originalname);
                     const uniqueFilename = `${crypto.randomUUID()}${fileExtension}`;
-                    const uploadDir = path_1.default.join(__dirname, "../../uploads");
+                    const uploadDir = path_1.default.join(__dirname, "../../uploads/profil-pictures");
                     const filePath = path_1.default.join(uploadDir, uniqueFilename);
                     // Création du répertoire s'il n'existe pas
                     if (!fs.existsSync(uploadDir)) {
@@ -163,17 +163,16 @@ let UserController = class UserController extends tsoa_1.Controller {
                             code: "file_processing_error",
                         });
                     }
-                    updateData.profilePicture = `/uploads/${uniqueFilename}`;
+                    updateData.profilePicture = `/uploads/profil-pictures/${uniqueFilename}`;
                 }
                 yield user.update(updateData);
                 yield user.reload();
-                this.setStatus(200);
-                return user;
+                return { message: "User updated", code: "user_updated" };
             }
             catch (err) {
-                console.error("Erreur dans patchUserInformations :", err);
+                console.error("Error in patchUser:", err);
                 return errorResponse(500, {
-                    message: "Erreur interne du serveur",
+                    message: "Internal Server Error",
                     code: "internal_server_error",
                 });
             }
@@ -251,7 +250,7 @@ __decorate([
     __param(4, (0, tsoa_1.FormField)()),
     __param(5, (0, tsoa_1.FormField)()),
     __param(6, (0, tsoa_1.UploadedFile)())
-], UserController.prototype, "patchUserInformations", null);
+], UserController.prototype, "patchUser", null);
 __decorate([
     (0, tsoa_1.Patch)("{userId}/edit-password"),
     (0, tsoa_1.Middlewares)([

@@ -6,7 +6,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserClassEditPasswordResponse = exports.UserClassEditPasswordRequest = exports.UserClassEditRequest = void 0;
+exports.UserClassEditPasswordResponse = exports.UserClassEditPasswordRequest = exports.UserClassEditResponse = exports.UserClassEditRequest = void 0;
 const class_validator_1 = require("class-validator");
 class UserClassEditRequest {
 }
@@ -23,6 +23,9 @@ __decorate([
     (0, class_validator_1.IsDateString)({}, { message: "Invalid date format for birthDay" }),
     (0, class_validator_1.IsNotEmpty)()
 ], UserClassEditRequest.prototype, "dateOfBirth", void 0);
+class UserClassEditResponse {
+}
+exports.UserClassEditResponse = UserClassEditResponse;
 class UserClassEditPasswordRequest {
 }
 exports.UserClassEditPasswordRequest = UserClassEditPasswordRequest;

@@ -32,7 +32,6 @@ export class RegisterUserRequest {
     },
   )
   password: string;
-
   @IsDateString({}, { message: "Invalid date format for birthDay" })
   dateOfBirth: Date;
 }

@@ -36,8 +36,18 @@ const models: TsoaRoute.Models = {
             "firstName": {"dataType":"string","required":true},
             "lastName": {"dataType":"string","required":true},
             "dateOfBirth": {"dataType":"datetime","required":true},
+            "profilePicture": {"dataType":"string"},
             "createdAt": {"dataType":"datetime"},
             "updatedAt": {"dataType":"datetime"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UserClassEditResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "message": {"dataType":"string","required":true},
+            "code": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
@@ -324,9 +334,9 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         app.patch('/api/user/:userId',
             upload.fields([{"name":"profilePicture","maxCount":1,"multiple":false}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
-            ...(fetchMiddlewares<RequestHandler>(UserController.prototype.patchUserInformations)),
+            ...(fetchMiddlewares<RequestHandler>(UserController.prototype.patchUser)),
 
-            async function UserController_patchUserInformations(request: ExRequest, response: ExResponse, next: any) {
+            async function UserController_patchUser(request: ExRequest, response: ExResponse, next: any) {
             const args: Record<string, TsoaRoute.ParameterSchema> = {
                     errorResponse: {"in":"res","name":"500","required":true,"ref":"ErrorResponse"},
                     userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
@@ -346,7 +356,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 const controller = new UserController();
 
               await templateService.apiHandler({
-                methodName: 'patchUserInformations',
+                methodName: 'patchUser',
                 controller,
                 response,
                 next,
