@@ -13,6 +13,7 @@ import {
   Tags,
   TsoaResponse,
 } from "tsoa";
+import transport from "../../mailConfig/mailConfig";
 import {
   getToken,
   jwtVerify,
@@ -103,8 +104,10 @@ export class RoomController extends Controller {
           code: verifiedToken.code,
         });
       }
-      const user = await User.findOne({ where: { id: verifiedToken.id } });
-      if (!user) {
+      const userWhoInvite = await User.findOne({
+        where: { id: verifiedToken.id },
+      });
+      if (!userWhoInvite) {
         return errorResponse(404, {
           message: "User not found",
           code: "user_not_found",
@@ -133,7 +136,7 @@ export class RoomController extends Controller {
       }
 
       room.getUsers().then((users) => {
-        if (!users.find((u) => u.id === user.id)) {
+        if (!users.find((u) => u.id === userWhoInvite.id)) {
           return errorResponse(401, {
             message: "Unauthorized",
             code: "unauthorized",
@@ -141,15 +144,25 @@ export class RoomController extends Controller {
         }
       });
 
-      const roomInviteToken = await TokenInviteRoomModel.createToken(room);
+      const roomInviteToken = await TokenInviteRoomModel.createToken(
+        room,
+        email,
+      );
 
       const url = `${process.env.FRONTEND_URL}/room/join/${roomInviteToken}`;
 
+      /*Send email with the url*/
+
+      const nameWhoInvite =
+        userWhoInvite.firstName + " " + userWhoInvite.lastName;
+
+      await this.sendMailInvitation(nameWhoInvite, email, url, room.title);
       this.setStatus(200);
       return {
         roomInviteToken: url,
       };
     } catch (error) {
+      console.log(error);
       return errorResponse(500, {
         message: "Internal Server Error",
         code: "internal_server_error",
@@ -345,6 +358,7 @@ export class RoomController extends Controller {
       });
     }
   }
+
   /*Get room by id*/
   @Get("{roomId}")
   @Middlewares(securityMiddleware)
@@ -393,5 +407,49 @@ export class RoomController extends Controller {
         code: "internal_server_error",
       });
     }
+  }
+
+  private generateEmailContent(
+    nameWhoInvite: string,
+    url: string,
+    nameRoom: string,
+  ): string {
+    return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gift Sync - Réinitialisation de votre mot de passe</title>
+    </head>
+    <body style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAFAFA; color: #1F1F1F;">
+        <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 200px; max-width: 100%; height: auto; margin-bottom: 20px;">
+            <h1 style="color: #4747FF; margin: 0; font-size: 24px; font-weight: bold;">${nameWhoInvite} vous invite à rejoindre la famille ${nameRoom}</h1>
+        </div>
+        <div style="text-align: center; padding-top: 20px;">
+            <p style="margin-bottom: 15px;">Bonjour,</p>
+            <p style="margin-bottom: 30px;">Cliquez sur le lien ci-dessous pour rejoindre la famille ${nameRoom}.</p>
+            <a style="padding: 12px;text-decoration: none; background:#4747FF; color:#FAFAFA; border-radius: 12px;margin-bottom: 30px; font-weight: 500" href="${url}">Rejoindre</a>
+        </div>
+    </body>
+    </html>
+  `;
+  }
+
+  private async sendMailInvitation(
+    nameWhoInvite: string,
+    email: string,
+    url: string,
+    nameRoom: string,
+  ): Promise<void> {
+    const contentMail = this.generateEmailContent(nameWhoInvite, url, nameRoom);
+    const mailOptions = {
+      from: "noreply@giftsync.fr",
+      to: email,
+      subject: `Gift Sync - ${nameWhoInvite} vous invite à rejoindre la famille ${nameRoom}`,
+      html: contentMail,
+    };
+    await transport.sendMail(mailOptions);
   }
 }

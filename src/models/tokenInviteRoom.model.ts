@@ -8,6 +8,7 @@ export interface TokenInviteRoomAttributes {
   room: string;
   token: string;
   expiryDate: Date;
+  emailToAccept: string;
 }
 
 // Optional fields for creation
@@ -22,6 +23,7 @@ export class TokenInviteRoomModel
   declare room: string;
   declare token: string;
   declare expiryDate: Date;
+  declare emailToAccept: string;
 
   static associate(models: any) {
     TokenInviteRoomModel.belongsTo(models.Room, {
@@ -30,12 +32,13 @@ export class TokenInviteRoomModel
     });
   }
 
-  static createToken = async (room: Room): Promise<string> => {
+  static createToken = async (room: Room, email: string): Promise<string> => {
     let expiredAt = new Date();
     expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("7200"));
     let _token = uuidv4();
     let refreshToken = await TokenInviteRoomModel.create({
       token: _token,
+      emailToAccept: email,
       room: room.id,
       expiryDate: expiredAt,
     });
@@ -66,6 +69,10 @@ TokenInviteRoomModel.init(
       allowNull: false,
     },
     token: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    emailToAccept: {
       type: DataTypes.STRING,
       allowNull: false,
     },

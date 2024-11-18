@@ -223,7 +223,6 @@ export class AuthController extends Controller {
     @Res() errorResponse: TsoaResponse<403 | 404 | 500, ErrorResponse>,
   ): Promise<ForgotPasswordResponse> {
     const { email } = body;
-
     if (!email) {
       return errorResponse(403, {
         message: "Email is required",
@@ -246,25 +245,8 @@ export class AuthController extends Controller {
         await AuthTokenForgotPassword.createForgotPasswordToken(user);
       if (forgotPasswordToken) {
         const url = `${process.env.FRONTEND_URL}/auth/reset-password?token=${forgotPasswordToken}`;
-        const mailOptions = {
-          from: "noreply@giftsync.fr",
-          to: user.email,
-          subject: "GiftSync - Mot de passe oublié",
-          html: `<a href="${url}">Ré initialiser votre mot de passe</a>`,
-        };
-        try {
-          await transport.sendMail(mailOptions);
-          this.setStatus(200);
-          return {
-            message: `Email Sent`,
-            code: "email_sent",
-          };
-        } catch (error) {
-          return errorResponse(500, {
-            message: "Error sending email",
-            code: "error_sending_email",
-          });
-        }
+        await this.sendEmailForgotPassword(email, url);
+        this.setStatus(200);
       }
     } catch (err) {
       return errorResponse(500, {
@@ -312,7 +294,6 @@ export class AuthController extends Controller {
       const user = await User.findOne({ where: { id: tokenInformation.user } });
       if (user) {
         user.password = await bcrypt.hash(newPassword, 12);
-        /*Delete tokenInformation*/
         await AuthTokenForgotPassword.destroy({
           where: { id: tokenInformation.id },
         });
@@ -335,5 +316,45 @@ export class AuthController extends Controller {
         code: "internal_server_error",
       });
     }
+  }
+
+  private generateEmailContent(email: string, url: string): string {
+    return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gift Sync - Réinitialisation de votre mot de passe</title>
+    </head>
+    <body style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAFAFA; color: #1F1F1F;">
+        <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 200px; max-width: 100%; height: auto; margin-bottom: 20px;">
+            <h1 style="color: #4747FF; margin: 0; font-size: 24px; font-weight: bold;">Réinitialisation de votre mot de passe</h1>
+        </div>
+        <div style="text-align: center; padding-top: 20px;">
+            <p style="margin-bottom: 15px;">Bonjour,</p>
+            <p style="margin-bottom: 15px;">Vous avez demandé à réinitialiser votre mot de passe pour le compte ${email}</p>
+            <p style="margin-bottom: 30px;">Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe.</p>
+            <a style="padding: 12px;text-decoration: none; background:#4747FF; color:#FAFAFA; border-radius: 12px;margin-bottom: 30px; font-weight: 500" href="${url}">Réinitialiser mon mot de passe</a>
+            <p style="margin-top: 30px">Si ce n'est pas vous qui êtes a l'origine de cette modification de mot de passe veuillez contacter le support <a href="mailto:support@giftsync.fr">ici</a></p>
+        </div>
+    </body>
+    </html>
+  `;
+  }
+
+  private async sendEmailForgotPassword(
+    email: string,
+    url: string,
+  ): Promise<void> {
+    const contentMail = this.generateEmailContent(email, url);
+    const mailOptions = {
+      from: "noreply@giftsync.fr",
+      to: email,
+      subject: "Gift Sync - Réinitialisation de votre mot de passe",
+      html: contentMail,
+    };
+    await transport.sendMail(mailOptions);
   }
 }

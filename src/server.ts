@@ -53,7 +53,7 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 
 const start = async (): Promise<void> => {
   try {
-    await connection.sync({ force: false });
+    await connection.sync({ force: true });
     app.listen(port, () => {
       console.log(`app started on port ${port}`);
     });

@@ -9,9 +9,9 @@ import {
   Tags,
   TsoaResponse,
 } from "tsoa";
-import transport from "../../mailConfig/mailConfig";
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
 import { ErrorResponse } from "../../types/Error";
+import { sendEmail } from "../../utils/mail";
 import {
   SecretSantaRequest,
   SecretSantaResponse,
@@ -52,19 +52,6 @@ export class SecretSantaController extends Controller {
     }
   }
 
-  private async sendEmail(
-    to: string,
-    subject: string,
-    html: string,
-  ): Promise<void> {
-    await transport.sendMail({
-      from: "noreply@giftsync.fr",
-      to,
-      subject,
-      html,
-    });
-  }
-
   private shuffleUsers(users: UserSecretSanta[]): UserSecretSanta[] {
     return [...users].sort(() => Math.random() - 0.5);
   }
@@ -85,7 +72,7 @@ export class SecretSantaController extends Controller {
     </head>
     <body style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAFAFA; color: #1F1F1F;">
         <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 250px; max-width: 100%; height: auto; margin-bottom: 20px;">
+            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 200px; max-width: 100%; height: auto; margin-bottom: 20px;">
             <h1 style="color: #4747FF; margin: 0; font-size: 24px; font-weight: bold;">${title} - Secret Santa</h1>
         </div>
         <div style="text-align: center; padding-top: 20px;">
@@ -115,7 +102,7 @@ export class SecretSantaController extends Controller {
         maxPrice,
         title,
       );
-      await this.sendEmail(giver.email, "Secret Santa - " + title, htmlContent);
+      await sendEmail(giver.email, "Secret Santa - " + title, htmlContent);
     }
   }
 }
