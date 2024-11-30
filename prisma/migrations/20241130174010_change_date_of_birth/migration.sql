@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Users" ALTER COLUMN "dateOfBirth" SET DATA TYPE TIMESTAMPTZ(6);

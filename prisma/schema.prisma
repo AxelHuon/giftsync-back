@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GiftDonors {
+  giftId     String   @db.VarChar(255)
+  userId     String   @db.Uuid
+  percentage Float
+  createdAt  DateTime @db.Timestamptz(6)
+  updatedAt  DateTime @db.Timestamptz(6)
+  Gifts      Gifts    @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  Users      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([giftId, userId])
+}
+
+model Gifts {
+  id         String       @id @db.VarChar(255)
+  giftUrl    String       @db.VarChar(255)
+  price      Float
+  listId     String       @db.Uuid
+  createdAt  DateTime     @db.Timestamptz(6)
+  updatedAt  DateTime     @db.Timestamptz(6)
+  GiftDonors GiftDonors[]
+  Lists      Lists        @relation(fields: [listId], references: [id], onDelete: NoAction)
+}
+
+model Lists {
+  id        String   @id @db.Uuid
+  name      String   @db.VarChar(255)
+  ownerId   String   @db.Uuid
+  roomId    String   @db.Uuid
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+  Gifts     Gifts[]
+  Users     Users    @relation(fields: [ownerId], references: [id], onDelete: NoAction)
+  Rooms     Rooms    @relation(fields: [roomId], references: [id], onDelete: NoAction)
+}
+
+model RoomUsers {
+  roomId String @db.Uuid
+  userId String @db.Uuid
+  Rooms  Rooms  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  Users  Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+}
+
+model Rooms {
+  id        String      @id @db.Uuid
+  ownerId   String      @db.Uuid
+  slug      String      @unique @db.VarChar(255)
+  title     String      @db.VarChar(255)
+  createdAt DateTime    @db.Timestamptz(6)
+  updatedAt DateTime    @db.Timestamptz(6)
+  Lists     Lists[]
+  RoomUsers RoomUsers[]
+}
+
+model UserRooms {
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+  UserId    String   @db.Uuid
+  RoomId    String   @db.Uuid
+
+  @@id([UserId, RoomId])
+}
+
+model Users {
+  id             String       @id @db.Uuid
+  firstName      String?      @db.VarChar(255)
+  lastName       String?      @db.VarChar(255)
+  profilePicture String?      @db.VarChar(255)
+  email          String?      @unique @db.VarChar(255)
+  password       String?      @db.VarChar(255)
+  dateOfBirth    DateTime?    @db.Timestamptz(6)
+  createdAt      DateTime     @db.Timestamptz(6)
+  updatedAt      DateTime     @db.Timestamptz(6)
+  GiftDonors     GiftDonors[]
+  Lists          Lists[]
+  RoomUsers      RoomUsers[]
+}
+
+model authTokenForgotPasswords {
+  id         String   @id @db.Uuid
+  user       String   @db.Uuid
+  token      String   @unique @db.VarChar(255)
+  expiryDate DateTime @db.Timestamptz(6)
+  createdAt  DateTime @db.Timestamptz(6)
+  updatedAt  DateTime @db.Timestamptz(6)
+}
+
+model authTokens {
+  id         String   @id @db.Uuid
+  user       String   @db.Uuid
+  token      String   @unique @db.VarChar(255)
+  expiryDate DateTime @db.Timestamptz(6)
+  createdAt  DateTime @db.Timestamptz(6)
+  updatedAt  DateTime @db.Timestamptz(6)
+}
+
+model inviteTokenRooms {
+  id            String   @id @db.Uuid
+  room          String   @db.Uuid
+  token         String   @unique @db.VarChar(255)
+  emailToAccept String   @db.VarChar(255)
+  expiryDate    DateTime @db.Timestamptz(6)
+  createdAt     DateTime @db.Timestamptz(6)
+  updatedAt     DateTime @db.Timestamptz(6)
+}

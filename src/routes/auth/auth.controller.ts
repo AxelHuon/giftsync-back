@@ -11,11 +11,12 @@ import {
   Tags,
   TsoaResponse,
 } from "tsoa";
-import transport from "../../mailConfig/mailConfig";
+import transport from "../../config/mailConfig";
+import prisma from "../../config/prisma";
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
-import AuthtokenModel from "../../models/authtoken.model";
-import AuthTokenForgotPassword from "../../models/authtokenForgotPassword.model";
-import User from "../../models/user.model";
+import { AuthTokenModel } from "../../models/authToken.model";
+import { AuthTokenForgotPasswordModel } from "../../models/authTokenForgotPasswords.model";
+import { UserModel } from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
 import {
   ForgotPasswordRequest,
@@ -46,24 +47,17 @@ export class AuthController extends Controller {
   ): Promise<RegisterUserResponse> {
     try {
       const { firstName, lastName, email, password, dateOfBirth } = body;
-      const userExists = await User.findOne({ where: { email } });
+      const userExists = await prisma.users.findUnique({ where: { email } });
       if (userExists) {
         return errorResponse(400, {
           message: "Email is already associated with an account",
           code: "email_already_exists",
         });
       }
-      await User.create({
-        email,
-        lastName,
-        firstName,
-        dateOfBirth,
-        password: await bcrypt.hash(password, 12),
-      });
-
       this.setStatus(200);
+      await UserModel.createUser(body);
       return {
-        message: "User successfully registered",
+        message: "UserModel successfully registered",
         code: "success_register",
       };
     } catch (error) {
@@ -90,14 +84,14 @@ export class AuthController extends Controller {
           code: "email_and_password_required",
         });
       }
-      const user = await User.findOne({
+      const user = await prisma.users.findUnique({
         where: { email },
       });
 
       if (user) {
         const passwordValid = await bcrypt.compare(
           passwordRequest,
-          user.dataValues.password,
+          user.password,
         );
         if (!passwordValid) {
           return errorResponse(400, {
@@ -105,14 +99,19 @@ export class AuthController extends Controller {
             code: "error_signIn_combination",
           });
         }
-        const tokenExists = await AuthtokenModel.findOne({
+
+        const tokenExists = await prisma.authTokens.findMany({
           where: { user: user.id },
         });
 
         if (tokenExists) {
-          await AuthtokenModel.destroy({ where: { id: tokenExists.id } });
+          /*for tokenExist delete*/
+          await prisma.authTokens.deleteMany({
+            where: { user: user.id },
+          });
         }
-        const refreshToken = await AuthtokenModel.createToken(user);
+
+        const refreshToken = await AuthTokenModel.createToken(user.id);
         const token = jwt.sign({ id: user.id }, secretKey ?? "", {
           expiresIn: process.env.JWT_EXPIRATION || "24h",
         });
@@ -157,7 +156,7 @@ export class AuthController extends Controller {
     }
 
     try {
-      const refreshToken = await AuthtokenModel.findOne({
+      const refreshToken = await prisma.authTokens.findUnique({
         where: { token: requestToken },
       });
 
@@ -169,7 +168,7 @@ export class AuthController extends Controller {
       }
 
       const isExpired =
-        await AuthtokenModel.verifyAndDeleteExpiredToken(refreshToken);
+        await AuthTokenModel.verifyAndDeleteExpiredToken(refreshToken);
       if (isExpired) {
         return errorResponse(403, {
           message:
@@ -178,14 +177,14 @@ export class AuthController extends Controller {
         });
       }
 
-      const user = await User.findOne({
+      const user = await prisma.users.findUnique({
         where: { id: refreshToken.user },
-        attributes: { exclude: ["password"] },
+        omit: { password: true },
       });
 
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
@@ -198,9 +197,9 @@ export class AuthController extends Controller {
         },
       );
 
-      const newRefreshToken = await AuthtokenModel.createToken(user);
+      const newRefreshToken = await AuthTokenModel.createToken(user.id);
 
-      await AuthtokenModel.destroy({ where: { id: refreshToken.id } });
+      await prisma.authTokens.delete({ where: { id: refreshToken.id } });
 
       this.setStatus(200);
       return {
@@ -231,7 +230,7 @@ export class AuthController extends Controller {
     }
 
     try {
-      const user = await User.findOne({
+      const user = await prisma.users.findUnique({
         where: { email: email },
       });
 
@@ -242,11 +241,15 @@ export class AuthController extends Controller {
         });
       }
       const forgotPasswordToken =
-        await AuthTokenForgotPassword.createForgotPasswordToken(user);
+        await AuthTokenForgotPasswordModel.createForgotPasswordToken(user.id);
       if (forgotPasswordToken) {
         const url = `${process.env.FRONTEND_URL}/auth/reset-password?token=${forgotPasswordToken}`;
         await this.sendEmailForgotPassword(email, url);
         this.setStatus(200);
+        return {
+          message: `${forgotPasswordToken}`,
+          code: "email_sent",
+        };
       }
     } catch (err) {
       return errorResponse(500, {
@@ -277,12 +280,14 @@ export class AuthController extends Controller {
         });
       }
 
-      const tokenInformation = await AuthTokenForgotPassword.findOne({
-        where: { token: token },
-      });
+      const tokenInformation = await prisma.authTokenForgotPasswords.findUnique(
+        {
+          where: { token: token },
+        },
+      );
 
       const isExpired =
-        await AuthTokenForgotPassword.verifyAndDeleteExpiredTokenForgotPassword(
+        await AuthTokenForgotPasswordModel.verifyAndDeleteExpiredTokenForgotPassword(
           tokenInformation,
         );
       if (isExpired) {
@@ -291,13 +296,22 @@ export class AuthController extends Controller {
           code: "token_refresh_token",
         });
       }
-      const user = await User.findOne({ where: { id: tokenInformation.user } });
+      const user = await prisma.users.findUnique({
+        where: { id: tokenInformation.user },
+      });
       if (user) {
         user.password = await bcrypt.hash(newPassword, 12);
-        await AuthTokenForgotPassword.destroy({
+        await prisma.authTokenForgotPasswords.delete({
           where: { id: tokenInformation.id },
         });
-        await user.save();
+
+        /*update user*/
+        await prisma.users.update({
+          where: { id: user.id },
+          data: {
+            password: user.password,
+          },
+        });
         this.setStatus(200);
         return {
           message: "Password changed successfully",
@@ -305,7 +319,7 @@ export class AuthController extends Controller {
         };
       } else {
         return errorResponse(403, {
-          message: "No User found",
+          message: "No UserModel found",
           code: "no_user_found",
         });
       }

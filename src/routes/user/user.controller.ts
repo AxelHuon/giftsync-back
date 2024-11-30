@@ -15,6 +15,7 @@ import {
   TsoaResponse,
   UploadedFile,
 } from "tsoa";
+import prisma from "../../config/prisma";
 
 import {
   getToken,
@@ -22,7 +23,7 @@ import {
   securityMiddleware,
 } from "../../middleware/auth.middleware";
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
-import User from "../../models/user.model";
+import { UserAttributes } from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
 import {
   UserClassEditPasswordRequest,
@@ -38,28 +39,6 @@ const bcrypt = require("bcrypt");
 @Tags("User")
 @Route("user")
 export class UserController extends Controller {
-  @Get("{userId}/rooms")
-  @Middlewares([securityMiddleware])
-  public async getRoomOfAUser(
-    @Request() req: any,
-    @Path() userId: string,
-    @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
-  ): Promise<any> {
-    try {
-      const user = await User.findOne({
-        where: { id: userId },
-        attributes: { exclude: ["password"] },
-      });
-      const rooms = await user?.getRooms();
-      return rooms;
-    } catch (err) {
-      return errorResponse(500, {
-        message: "Internal Server Error",
-        code: "internal_server_error",
-      });
-    }
-  }
-
   @Get("{userId}")
   @Middlewares([securityMiddleware])
   public async getUserById(
@@ -69,14 +48,13 @@ export class UserController extends Controller {
     errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
   ): Promise<UserClassGetResponse> {
     try {
-      const user = await User.findOne({
+      const user = await prisma.users.findUnique({
         where: { id: userId },
-        attributes: { exclude: ["password"] },
-        include: ["rooms"],
+        omit: { password: true },
       });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
@@ -113,17 +91,18 @@ export class UserController extends Controller {
         });
       }
 
-      const user = await User.findByPk(userId, {
-        attributes: { exclude: ["password"] },
+      const user = await prisma.users.findUnique({
+        where: { id: userId },
+        omit: { password: true },
       });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
 
-      const updateData: Partial<User> = {};
+      const updateData: Partial<UserAttributes> = {};
       if (firstName !== undefined) updateData.firstName = firstName;
       if (lastName !== undefined) updateData.lastName = lastName;
       if (dateOfBirth !== undefined)
@@ -185,10 +164,12 @@ export class UserController extends Controller {
         updateData.profilePicture = `/uploads/profil-pictures/${uniqueFilename}`;
       }
 
-      await user.update(updateData as any);
-      await user.reload();
+      await prisma.users.update({
+        where: { id: userId },
+        data: updateData,
+      });
 
-      return { message: "User updated", code: "user_updated" };
+      return { message: "UserModel updated", code: "user_updated" };
     } catch (err) {
       console.error("Error in patchUser:", err);
       return errorResponse(500, {
@@ -219,12 +200,12 @@ export class UserController extends Controller {
         });
       }
 
-      const user = await User.findByPk(userId, {
-        attributes: { include: ["password"] },
+      const user = await prisma.users.findUnique({
+        where: { id: userId },
       });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
@@ -246,11 +227,36 @@ export class UserController extends Controller {
       }
 
       const hashedPassword = await bcrypt.hash(password, 12);
-      await user.update({ password: hashedPassword });
+      /*update password*/
+      await prisma.users.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
 
       return { message: "Password updated", code: "password_updated" };
     } catch (err) {
       console.error("Error in patchPassword:", err);
+      return errorResponse(500, {
+        message: "Internal Server Error",
+        code: "internal_server_error",
+      });
+    }
+  }
+
+  @Get("{userId}/rooms")
+  @Middlewares([securityMiddleware])
+  public async getRoomOfAUser(
+    @Request() req: any,
+    @Path() userId: string,
+    @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
+  ): Promise<any> {
+    try {
+      const user = await prisma.users.findUnique({
+        where: { id: userId },
+        omit: { password: true },
+      });
+      return user;
+    } catch (err) {
       return errorResponse(500, {
         message: "Internal Server Error",
         code: "internal_server_error",

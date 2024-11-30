@@ -13,16 +13,16 @@ import {
   Tags,
   TsoaResponse,
 } from "tsoa";
-import transport from "../../mailConfig/mailConfig";
+import transport from "../../config/mailConfig";
+import prisma from "../../config/prisma";
 import {
   getToken,
   jwtVerify,
   securityMiddleware,
 } from "../../middleware/auth.middleware";
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
-import Room, { RoomAttributes } from "../../models/room.model";
-import TokenInviteRoomModel from "../../models/tokenInviteRoom.model";
-import User from "../../models/user.model";
+import { RoomAttributes, RoomModel } from "../../models/room.model";
+import { TokenInviteRoomModel } from "../../models/tokenInviteRoom.model";
 import { ErrorResponse } from "../../types/Error";
 import {
   CreateRoomRequest,
@@ -44,7 +44,7 @@ export class RoomController extends Controller {
     @Request() req: any,
     @Body() body: CreateRoomRequest,
     @Res() errorResponse: TsoaResponse<401 | 404 | 422 | 500, ErrorResponse>,
-  ): Promise<RoomAttributes> {
+  ): Promise<CreateRoomRequest> {
     try {
       const token = getToken(req.headers);
       const verifiedToken = await jwtVerify(token);
@@ -54,10 +54,12 @@ export class RoomController extends Controller {
           code: verifiedToken.code,
         });
       }
-      const owner = await User.findOne({ where: { id: verifiedToken.id } });
+      const owner = await prisma.users.findUnique({
+        where: { id: verifiedToken.id },
+      });
       if (!owner) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
@@ -68,13 +70,7 @@ export class RoomController extends Controller {
           code: "title_required",
         });
       }
-      const newRoom = await Room.create({
-        title,
-        ownerId: verifiedToken.id,
-      });
-
-      await newRoom.addUsers([owner]);
-
+      const newRoom = await RoomModel.createRoom(title, verifiedToken.id);
       this.setStatus(200);
       return newRoom;
     } catch (error) {
@@ -104,12 +100,12 @@ export class RoomController extends Controller {
           code: verifiedToken.code,
         });
       }
-      const userWhoInvite = await User.findOne({
+      const userWhoInvite = await prisma.users.findUnique({
         where: { id: verifiedToken.id },
       });
       if (!userWhoInvite) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
@@ -126,7 +122,10 @@ export class RoomController extends Controller {
           code: "room_id_required",
         });
       }
-      const room = await Room.findOne({ where: { id: roomId } });
+      const room = await prisma.rooms.findUnique({
+        where: { id: roomId },
+        include: { RoomUsers: true },
+      });
 
       if (!room) {
         return errorResponse(404, {
@@ -135,23 +134,19 @@ export class RoomController extends Controller {
         });
       }
 
-      room.getUsers().then((users) => {
-        if (!users.find((u) => u.id === userWhoInvite.id)) {
-          return errorResponse(401, {
-            message: "Unauthorized",
-            code: "unauthorized",
-          });
-        }
-      });
+      if (!room.RoomUsers.find((u) => u.userId === userWhoInvite.id)) {
+        return errorResponse(401, {
+          message: "Unauthorized",
+          code: "unauthorized",
+        });
+      }
 
-      const roomInviteToken = await TokenInviteRoomModel.createToken(
-        room,
+      const roomInviteToken = await TokenInviteRoomModel.createTokenInviteRoom(
+        room.id,
         email,
       );
 
       const url = `${process.env.FRONTEND_URL}/room/join/${roomInviteToken}`;
-
-      /*Send email with the url*/
 
       const nameWhoInvite =
         userWhoInvite.firstName + " " + userWhoInvite.lastName;
@@ -194,15 +189,15 @@ export class RoomController extends Controller {
         });
       }
 
-      const user = await User.findOne({ where: { email } });
+      const user = await prisma.users.findUnique({ where: { email } });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
 
-      const tokenInvite = await TokenInviteRoomModel.findOne({
+      const tokenInvite = await prisma.inviteTokenRooms.findUnique({
         where: { token },
       });
       if (!tokenInvite) {
@@ -213,9 +208,12 @@ export class RoomController extends Controller {
       }
 
       const isExpired =
-        await TokenInviteRoomModel.verifyAndDeleteExpiredToken(tokenInvite);
+        await TokenInviteRoomModel.verifyAndDeleteTokenInviteRoom(tokenInvite);
       if (!isExpired) {
-        const room = await Room.findOne({ where: { id: tokenInvite.room } });
+        const room = await prisma.rooms.findUnique({
+          where: { id: tokenInvite.room },
+          include: { RoomUsers: true },
+        });
         if (!room) {
           return errorResponse(404, {
             message: "Room not found",
@@ -223,15 +221,20 @@ export class RoomController extends Controller {
           });
         }
 
-        const users = await room.getUsers();
-        if (users.find((u) => u.id === user.id)) {
+        if (room.RoomUsers.find((u) => u.userId === user.id)) {
           return errorResponse(400, {
-            message: "User already in room",
+            message: "UserModel already in room",
             code: "user_already_in_room",
           });
         }
 
-        await room.addUsers([user]);
+        /*Add User To the room*/
+        await prisma.roomUsers.create({
+          data: {
+            roomId: room.id,
+            userId: user.id,
+          },
+        });
 
         this.setStatus(200);
         return {
@@ -268,14 +271,16 @@ export class RoomController extends Controller {
           code: verifiedToken.code,
         });
       }
-      const user = await User.findOne({ where: { id: verifiedToken.id } });
+      const user = await prisma.users.findUnique({
+        where: { id: verifiedToken.id },
+      });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
-      const room = await Room.findOne({ where: { id: roomId } });
+      const room = await prisma.rooms.findUnique({ where: { id: roomId } });
       if (!room) {
         return errorResponse(404, {
           message: "Room not found",
@@ -288,7 +293,7 @@ export class RoomController extends Controller {
           code: "unauthorized",
         });
       }
-      await room.destroy();
+      await prisma.rooms.delete({ where: { id: roomId } });
       this.setStatus(200);
       return room;
     } catch (error) {
@@ -319,14 +324,16 @@ export class RoomController extends Controller {
           code: verifiedToken.code,
         });
       }
-      const user = await User.findOne({ where: { id: verifiedToken.id } });
+      const user = await prisma.users.findUnique({
+        where: { id: verifiedToken.id },
+      });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
-      const room = await Room.findOne({ where: { id: roomId } });
+      const room = await prisma.rooms.findUnique({ where: { id: roomId } });
       if (!room) {
         return errorResponse(404, {
           message: "Room not found",
@@ -346,8 +353,7 @@ export class RoomController extends Controller {
           code: "title_required",
         });
       }
-      room.title = title;
-      await room.save();
+      prisma.rooms.update({ where: { id: roomId }, data: { title } });
       this.setStatus(200);
       return room;
     } catch (error) {
@@ -360,10 +366,10 @@ export class RoomController extends Controller {
   }
 
   /*Get room by id*/
-  @Get("{roomId}")
+  @Get("{roomSlug}")
   @Middlewares(securityMiddleware)
   public async getRoomById(
-    @Path() roomId: string,
+    @Path() roomSlug: string,
     @Request() req: any,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
   ): Promise<RoomAttributes> {
@@ -376,14 +382,19 @@ export class RoomController extends Controller {
           code: verifiedToken.code,
         });
       }
-      const user = await User.findOne({ where: { id: verifiedToken.id } });
+      const user = await prisma.users.findUnique({
+        where: { id: verifiedToken.id },
+      });
       if (!user) {
         return errorResponse(404, {
-          message: "User not found",
+          message: "UserModel not found",
           code: "user_not_found",
         });
       }
-      const room = await Room.findOne({ where: { id: roomId } });
+      const room = await prisma.rooms.findUnique({
+        where: { slug: roomSlug },
+        include: { RoomUsers: true },
+      });
       if (!room) {
         return errorResponse(404, {
           message: "Room not found",
@@ -391,8 +402,7 @@ export class RoomController extends Controller {
         });
       }
 
-      const usersOfTheRoom = await room.getUsers();
-      if (!usersOfTheRoom.find((u) => u.id === user.id)) {
+      if (!room.RoomUsers.find((u) => u.userId === user.id)) {
         return errorResponse(401, {
           message: "Unauthorized",
           code: "unauthorized",

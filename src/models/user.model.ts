@@ -1,65 +1,37 @@
-import {
-  DataTypes,
-  HasManyGetAssociationsMixin,
-  Model,
-  Optional,
-} from "sequelize";
+import { Prisma } from "@prisma/client"; // Import de Prisma pour accéder aux types générés
 import { v4 as uuidv4 } from "uuid";
-import connection from "../config/connection";
-import Room from "./room.model";
+import prisma from "../config/prisma";
+import { RegisterUserRequest } from "../routes/auth/auth.interface"; // Chemin vers votre configuration Prisma
+const bcrypt = require("bcrypt");
 
 export type UserAttributes = {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
+  profilePicture?: string;
   password: string;
   dateOfBirth: Date;
-  createdAt?: string;
-  profilePicture?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
-type UserCreationAttributes = Optional<UserAttributes, "id">;
 
-class User extends Model<UserAttributes, UserCreationAttributes> {
-  declare id: string;
-  declare firstName: string;
-  declare lastName: string;
-  declare email: string;
-  declare password: string;
-  declare dateOfBirth: Date;
-  declare profilePicture?: string;
-  declare createdAt?: Date;
-  declare updatedAt?: Date;
-  declare getRooms: HasManyGetAssociationsMixin<Room[]>;
+export class UserModel {
+  static async createUser(
+    user: RegisterUserRequest,
+  ): Promise<Prisma.UsersCreateInput> {
+    const userToCreate: Prisma.UsersCreateInput = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      password: await bcrypt.hash(user.password, 12),
+      dateOfBirth: user.dateOfBirth,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    return await prisma.users.create({
+      data: userToCreate,
+    });
+  }
 }
-
-User.init(
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-      allowNull: false,
-    },
-    firstName: DataTypes.STRING,
-    lastName: DataTypes.STRING,
-    profilePicture: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password: DataTypes.STRING,
-    dateOfBirth: DataTypes.DATEONLY,
-  },
-  {
-    sequelize: connection,
-    modelName: "User",
-    hooks: {
-      beforeCreate: async (user: User) => {
-        if (!user.id) {
-          user.id = uuidv4();
-        }
-      },
-    },
-  },
-);
-
-export default User;

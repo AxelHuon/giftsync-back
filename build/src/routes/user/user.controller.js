@@ -48,42 +48,23 @@ exports.UserController = void 0;
 const fs = __importStar(require("node:fs"));
 const path_1 = __importDefault(require("path"));
 const tsoa_1 = require("tsoa");
+const prisma_1 = __importDefault(require("../../config/prisma"));
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
-const user_model_1 = __importDefault(require("../../models/user.model"));
 const user_interface_1 = require("./user.interface");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 let UserController = class UserController extends tsoa_1.Controller {
-    getRoomOfAUser(req, userId, errorResponse) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const user = yield user_model_1.default.findOne({
-                    where: { id: userId },
-                    attributes: { exclude: ["password"] },
-                });
-                const rooms = yield (user === null || user === void 0 ? void 0 : user.getRooms());
-                return rooms;
-            }
-            catch (err) {
-                return errorResponse(500, {
-                    message: "Internal Server Error",
-                    code: "internal_server_error",
-                });
-            }
-        });
-    }
     getUserById(userId, req, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield user_model_1.default.findOne({
+                const user = yield prisma_1.default.users.findUnique({
                     where: { id: userId },
-                    attributes: { exclude: ["password"] },
-                    include: ["rooms"],
+                    omit: { password: true },
                 });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
@@ -110,12 +91,13 @@ let UserController = class UserController extends tsoa_1.Controller {
                         code: "unauthorized",
                     });
                 }
-                const user = yield user_model_1.default.findByPk(userId, {
-                    attributes: { exclude: ["password"] },
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: userId },
+                    omit: { password: true },
                 });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
@@ -163,11 +145,20 @@ let UserController = class UserController extends tsoa_1.Controller {
                             code: "file_processing_error",
                         });
                     }
+                    /*If user have already a profile picture delete it*/
+                    if (user.profilePicture) {
+                        const oldProfilePicturePath = path_1.default.join(__dirname, "../../uploads/profil-pictures", user.profilePicture.split("/").pop());
+                        if (fs.existsSync(oldProfilePicturePath)) {
+                            fs.unlinkSync(oldProfilePicturePath);
+                        }
+                    }
                     updateData.profilePicture = `/uploads/profil-pictures/${uniqueFilename}`;
                 }
-                yield user.update(updateData);
-                yield user.reload();
-                return { message: "User updated", code: "user_updated" };
+                yield prisma_1.default.users.update({
+                    where: { id: userId },
+                    data: updateData,
+                });
+                return { message: "UserModel updated", code: "user_updated" };
             }
             catch (err) {
                 console.error("Error in patchUser:", err);
@@ -189,12 +180,12 @@ let UserController = class UserController extends tsoa_1.Controller {
                         code: "unauthorized",
                     });
                 }
-                const user = yield user_model_1.default.findByPk(userId, {
-                    attributes: { include: ["password"] },
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: userId },
                 });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
@@ -212,7 +203,11 @@ let UserController = class UserController extends tsoa_1.Controller {
                     });
                 }
                 const hashedPassword = yield bcrypt.hash(password, 12);
-                yield user.update({ password: hashedPassword });
+                /*update password*/
+                yield prisma_1.default.users.update({
+                    where: { id: userId },
+                    data: { password: hashedPassword },
+                });
                 return { message: "Password updated", code: "password_updated" };
             }
             catch (err) {
@@ -224,15 +219,25 @@ let UserController = class UserController extends tsoa_1.Controller {
             }
         });
     }
+    getRoomOfAUser(req, userId, errorResponse) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: userId },
+                    omit: { password: true },
+                });
+                return user;
+            }
+            catch (err) {
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
+                });
+            }
+        });
+    }
 };
 exports.UserController = UserController;
-__decorate([
-    (0, tsoa_1.Get)("{userId}/rooms"),
-    (0, tsoa_1.Middlewares)([auth_middleware_1.securityMiddleware]),
-    __param(0, (0, tsoa_1.Request)()),
-    __param(1, (0, tsoa_1.Path)()),
-    __param(2, (0, tsoa_1.Res)())
-], UserController.prototype, "getRoomOfAUser", null);
 __decorate([
     (0, tsoa_1.Get)("{userId}"),
     (0, tsoa_1.Middlewares)([auth_middleware_1.securityMiddleware]),
@@ -262,6 +267,13 @@ __decorate([
     __param(2, (0, tsoa_1.Body)()),
     __param(3, (0, tsoa_1.Res)())
 ], UserController.prototype, "patchPassword", null);
+__decorate([
+    (0, tsoa_1.Get)("{userId}/rooms"),
+    (0, tsoa_1.Middlewares)([auth_middleware_1.securityMiddleware]),
+    __param(0, (0, tsoa_1.Request)()),
+    __param(1, (0, tsoa_1.Path)()),
+    __param(2, (0, tsoa_1.Res)())
+], UserController.prototype, "getRoomOfAUser", null);
 exports.UserController = UserController = __decorate([
     (0, tsoa_1.Tags)("User"),
     (0, tsoa_1.Route)("user")

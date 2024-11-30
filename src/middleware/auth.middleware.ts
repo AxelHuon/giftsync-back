@@ -1,6 +1,5 @@
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
-import AuthtokenModel from "../models/authtoken.model";
 import { ErrorResponse } from "../types/Error";
 
 export function getToken(headers: any): string | null {
@@ -27,9 +26,10 @@ export async function jwtVerify(
         code: "token_invalid",
       };
     }
-    const tokenExists = await AuthtokenModel.findOne({
+    /*    const tokenExists = await AuthtokenModel.findOne({
       where: { user: decodedToken.id },
-    });
+    });*/
+    const tokenExists = true;
     if (!tokenExists) {
       return {
         message: "Invalid token",

@@ -17,14 +17,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SecretSantaController = void 0;
 const tsoa_1 = require("tsoa");
-const mailConfig_1 = __importDefault(require("../../mailConfig/mailConfig"));
 const validation_middleware_1 = require("../../middleware/validation.middleware");
+const mail_1 = require("../../utils/mail");
 const secret_santa_interface_1 = require("./secret-santa.interface");
 require("dotenv").config();
 let SecretSantaController = class SecretSantaController extends tsoa_1.Controller {
@@ -53,16 +50,6 @@ let SecretSantaController = class SecretSantaController extends tsoa_1.Controlle
             }
         });
     }
-    sendEmail(to, subject, html) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield mailConfig_1.default.sendMail({
-                from: "noreply@giftsync.fr",
-                to,
-                subject,
-                html,
-            });
-        });
-    }
     shuffleUsers(users) {
         return [...users].sort(() => Math.random() - 0.5);
     }
@@ -77,7 +64,7 @@ let SecretSantaController = class SecretSantaController extends tsoa_1.Controlle
     </head>
     <body style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAFAFA; color: #1F1F1F;">
         <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 250px; max-width: 100%; height: auto; margin-bottom: 20px;">
+            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 200px; max-width: 100%; height: auto; margin-bottom: 20px;">
             <h1 style="color: #4747FF; margin: 0; font-size: 24px; font-weight: bold;">${title} - Secret Santa</h1>
         </div>
         <div style="text-align: center; padding-top: 20px;">
@@ -98,7 +85,7 @@ let SecretSantaController = class SecretSantaController extends tsoa_1.Controlle
                 const receiver = shuffled[(i + 1) % shuffled.length];
                 console.log(`Giver: ${giver.name} - Receiver: ${receiver.name}`);
                 const htmlContent = this.generateEmailContent(giver, receiver, maxPrice, title);
-                yield this.sendEmail(giver.email, "Secret Santa - " + title, htmlContent);
+                yield (0, mail_1.sendEmail)(giver.email, "Secret Santa - " + title, htmlContent);
             }
         });
     }

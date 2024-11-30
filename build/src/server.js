@@ -41,10 +41,8 @@ const path = __importStar(require("node:path"));
 const node_process_1 = __importDefault(require("node:process"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const tsoa_1 = require("tsoa");
-const app_1 = require("./app");
-const connection_1 = __importDefault(require("./config/connection"));
 require("dotenv/config");
-require("./models/associations");
+const app_1 = require("./app");
 require("dotenv").config();
 const port = node_process_1.default.env.PORT;
 app_1.app.use("/api-docs", swagger_ui_express_1.default.serve, (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -72,17 +70,6 @@ app_1.app.use(function errorHandler(err, req, res, next) {
     }
 });
 app_1.app.use("/uploads", express_1.default.static(path.join(__dirname, "uploads")));
-app_1.app.use("/images", express_1.default.static(path.join(__dirname, "images")));
-const start = () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield connection_1.default.sync({ force: false });
-        app_1.app.listen(port, () => {
-            console.log(`app started on port ${port}`);
-        });
-    }
-    catch (error) {
-        console.error(error);
-        node_process_1.default.exit(1);
-    }
+app_1.app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
-void start();

@@ -12,33 +12,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const sequelize_1 = require("sequelize");
+exports.UserModel = void 0;
 const uuid_1 = require("uuid");
-const connection_1 = __importDefault(require("../config/connection"));
-class User extends sequelize_1.Model {
+const prisma_1 = __importDefault(require("../config/prisma"));
+const bcrypt = require("bcrypt");
+class UserModel {
+    static createUser(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userToCreate = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                password: yield bcrypt.hash(user.password, 12),
+                dateOfBirth: user.dateOfBirth,
+                id: (0, uuid_1.v4)(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            return yield prisma_1.default.users.create({
+                data: userToCreate,
+            });
+        });
+    }
 }
-User.init({
-    id: {
-        type: sequelize_1.DataTypes.UUID,
-        defaultValue: sequelize_1.DataTypes.UUIDV4,
-        primaryKey: true,
-        allowNull: false,
-    },
-    firstName: sequelize_1.DataTypes.STRING,
-    lastName: sequelize_1.DataTypes.STRING,
-    profilePicture: sequelize_1.DataTypes.STRING,
-    email: sequelize_1.DataTypes.STRING,
-    password: sequelize_1.DataTypes.STRING,
-    dateOfBirth: sequelize_1.DataTypes.DATEONLY,
-}, {
-    sequelize: connection_1.default,
-    modelName: "User",
-    hooks: {
-        beforeCreate: (user) => __awaiter(void 0, void 0, void 0, function* () {
-            if (!user.id) {
-                user.id = (0, uuid_1.v4)();
-            }
-        }),
-    },
-});
-exports.default = User;
+exports.UserModel = UserModel;

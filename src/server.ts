@@ -4,10 +4,8 @@ import * as path from "node:path";
 import process from "node:process";
 import swaggerUi from "swagger-ui-express";
 import { ValidateError } from "tsoa";
-import { app } from "./app";
-import connection from "./config/connection";
 import "dotenv/config";
-import "./models/associations";
+import { app } from "./app";
 
 require("dotenv").config();
 const port = process.env.PORT;
@@ -49,17 +47,7 @@ app.use(function errorHandler(
 });
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/images", express.static(path.join(__dirname, "images")));
 
-const start = async (): Promise<void> => {
-  try {
-    await connection.sync({ force: true });
-    app.listen(port, () => {
-      console.log(`app started on port ${port}`);
-    });
-  } catch (error) {
-    console.error(error);
-    process.exit(1);
-  }
-};
-void start();
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});

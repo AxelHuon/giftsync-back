@@ -1,88 +1,60 @@
-import {
-  DataTypes,
-  HasManyAddAssociationsMixin,
-  HasManyGetAssociationsMixin,
-  Model,
-  Optional,
-} from "sequelize";
 import slugify from "slugify";
-import connection from "../config/connection";
-import User from "./user.model";
+import { v4 as uuidv4 } from "uuid";
+import prisma from "../config/prisma";
 
 export interface RoomAttributes {
   id: string;
-  title: string;
   ownerId: string;
+  title: string;
   slug: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export interface RoomCreationAttributes
-  extends Optional<RoomAttributes, "slug" | "id"> {}
+export interface RoomUserAttributes {
+  roomId: string;
+  userId: string;
+}
 
-export class Room
-  extends Model<RoomAttributes, RoomCreationAttributes>
-  implements RoomAttributes
-{
-  declare id: string;
-  declare title: string;
-  declare ownerId: string;
-  declare slug: string;
-  declare addUsers: HasManyAddAssociationsMixin<User, number>;
-  declare getUsers: HasManyGetAssociationsMixin<User>;
-  static async generateUniqueSlug(title: string): Promise<string> {
+export class RoomModel {
+  static createRoom = async (
+    title: string,
+    ownerId: string,
+  ): Promise<RoomAttributes> => {
     let slug = slugify(title, { lower: true });
     let uniqueSlug = slug;
     let count = 1;
-
-    while (await Room.findOne({ where: { slug: uniqueSlug } })) {
+    while (await prisma.rooms.findUnique({ where: { slug: uniqueSlug } })) {
       uniqueSlug = `${slug}-${count++}`;
     }
 
-    return uniqueSlug;
-  }
+    const room = await prisma.rooms.create({
+      data: {
+        id: uuidv4(),
+        title: title,
+        slug: uniqueSlug,
+        ownerId: ownerId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    await prisma.roomUsers.create({
+      data: {
+        roomId: room.id,
+        userId: ownerId,
+      },
+    });
+    return room;
+  };
+
+  static getUsersOfARoom = async (
+    roomId: string,
+  ): Promise<RoomUserAttributes[]> => {
+    return await prisma.roomUsers.findMany({
+      where: {
+        roomId: roomId,
+      },
+    });
+  };
 }
-
-Room.init(
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-      allowNull: false,
-    },
-    ownerId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
-    slug: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  {
-    sequelize: connection,
-    modelName: "Room",
-    hooks: {
-      beforeValidate: async (room: Room) => {
-        if (!room.slug) {
-          room.slug = await Room.generateUniqueSlug(room.title);
-        }
-      },
-      beforeCreate: async (room: Room) => {
-        room.slug = await Room.generateUniqueSlug(room.title);
-      },
-      beforeUpdate: async (room: Room) => {
-        if (room.changed("title")) {
-          room.slug = await Room.generateUniqueSlug(room.title);
-        }
-      },
-    },
-  },
-);
-
-export default Room;

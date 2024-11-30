@@ -11,62 +11,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Room = void 0;
-const sequelize_1 = require("sequelize");
+exports.RoomModel = void 0;
 const slugify_1 = __importDefault(require("slugify"));
-const connection_1 = __importDefault(require("../config/connection"));
-class Room extends sequelize_1.Model {
-    static generateUniqueSlug(title) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let slug = (0, slugify_1.default)(title, { lower: true });
-            let uniqueSlug = slug;
-            let count = 1;
-            while (yield Room.findOne({ where: { slug: uniqueSlug } })) {
-                uniqueSlug = `${slug}-${count++}`;
-            }
-            return uniqueSlug;
-        });
-    }
+const uuid_1 = require("uuid");
+const prisma_1 = __importDefault(require("../config/prisma"));
+class RoomModel {
 }
-exports.Room = Room;
-Room.init({
-    id: {
-        type: sequelize_1.DataTypes.UUID,
-        defaultValue: sequelize_1.DataTypes.UUIDV4,
-        primaryKey: true,
-        allowNull: false,
-    },
-    ownerId: {
-        type: sequelize_1.DataTypes.UUID,
-        allowNull: false,
-    },
-    slug: {
-        type: sequelize_1.DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-    },
-    title: {
-        type: sequelize_1.DataTypes.STRING,
-        allowNull: false,
-    },
-}, {
-    sequelize: connection_1.default,
-    modelName: "Room",
-    hooks: {
-        beforeValidate: (room) => __awaiter(void 0, void 0, void 0, function* () {
-            if (!room.slug) {
-                room.slug = yield Room.generateUniqueSlug(room.title);
-            }
-        }),
-        beforeCreate: (room) => __awaiter(void 0, void 0, void 0, function* () {
-            room.slug = yield Room.generateUniqueSlug(room.title);
-        }),
-        beforeUpdate: (room) => __awaiter(void 0, void 0, void 0, function* () {
-            if (room.changed("title")) {
-                room.slug = yield Room.generateUniqueSlug(room.title);
-            }
-        }),
-    },
+exports.RoomModel = RoomModel;
+_a = RoomModel;
+RoomModel.createRoom = (title, ownerId) => __awaiter(void 0, void 0, void 0, function* () {
+    let slug = (0, slugify_1.default)(title, { lower: true });
+    let uniqueSlug = slug;
+    let count = 1;
+    while (yield prisma_1.default.rooms.findUnique({ where: { slug: uniqueSlug } })) {
+        uniqueSlug = `${slug}-${count++}`;
+    }
+    const room = yield prisma_1.default.rooms.create({
+        data: {
+            id: (0, uuid_1.v4)(),
+            title: title,
+            slug: uniqueSlug,
+            ownerId: ownerId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        },
+    });
+    yield prisma_1.default.roomUsers.create({
+        data: {
+            roomId: room.id,
+            userId: ownerId,
+        },
+    });
+    return room;
 });
-exports.default = Room;
+RoomModel.getUsersOfARoom = (roomId) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield prisma_1.default.roomUsers.findMany({
+        where: {
+            roomId: roomId,
+        },
+    });
+});

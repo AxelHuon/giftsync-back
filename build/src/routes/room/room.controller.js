@@ -23,11 +23,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoomController = void 0;
 const tsoa_1 = require("tsoa");
+const mailConfig_1 = __importDefault(require("../../config/mailConfig"));
+const prisma_1 = __importDefault(require("../../config/prisma"));
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
-const room_model_1 = __importDefault(require("../../models/room.model"));
-const tokenInviteRoom_model_1 = __importDefault(require("../../models/tokenInviteRoom.model"));
-const user_model_1 = __importDefault(require("../../models/user.model"));
+const room_model_1 = require("../../models/room.model");
+const tokenInviteRoom_model_1 = require("../../models/tokenInviteRoom.model");
 const room_interface_1 = require("./room.interface");
 require("dotenv").config();
 let RoomController = class RoomController extends tsoa_1.Controller {
@@ -42,10 +43,12 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: verifiedToken.code,
                     });
                 }
-                const owner = yield user_model_1.default.findOne({ where: { id: verifiedToken.id } });
+                const owner = yield prisma_1.default.users.findUnique({
+                    where: { id: verifiedToken.id },
+                });
                 if (!owner) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
@@ -56,11 +59,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "title_required",
                     });
                 }
-                const newRoom = yield room_model_1.default.create({
-                    title,
-                    ownerId: verifiedToken.id,
-                });
-                yield newRoom.addUsers([owner]);
+                const newRoom = yield room_model_1.RoomModel.createRoom(title, verifiedToken.id);
                 this.setStatus(200);
                 return newRoom;
             }
@@ -84,10 +83,12 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: verifiedToken.code,
                     });
                 }
-                const user = yield user_model_1.default.findOne({ where: { id: verifiedToken.id } });
-                if (!user) {
+                const userWhoInvite = yield prisma_1.default.users.findUnique({
+                    where: { id: verifiedToken.id },
+                });
+                if (!userWhoInvite) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
@@ -104,29 +105,33 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "room_id_required",
                     });
                 }
-                const room = yield room_model_1.default.findOne({ where: { id: roomId } });
+                const room = yield prisma_1.default.rooms.findUnique({
+                    where: { id: roomId },
+                    include: { RoomUsers: true },
+                });
                 if (!room) {
                     return errorResponse(404, {
                         message: "Room not found",
                         code: "room_not_found",
                     });
                 }
-                room.getUsers().then((users) => {
-                    if (!users.find((u) => u.id === user.id)) {
-                        return errorResponse(401, {
-                            message: "Unauthorized",
-                            code: "unauthorized",
-                        });
-                    }
-                });
-                const roomInviteToken = yield tokenInviteRoom_model_1.default.createToken(room);
+                if (!room.RoomUsers.find((u) => u.userId === userWhoInvite.id)) {
+                    return errorResponse(401, {
+                        message: "Unauthorized",
+                        code: "unauthorized",
+                    });
+                }
+                const roomInviteToken = yield tokenInviteRoom_model_1.TokenInviteRoomModel.createTokenInviteRoom(room.id, email);
                 const url = `${process.env.FRONTEND_URL}/room/join/${roomInviteToken}`;
+                const nameWhoInvite = userWhoInvite.firstName + " " + userWhoInvite.lastName;
+                yield this.sendMailInvitation(nameWhoInvite, email, url, room.title);
                 this.setStatus(200);
                 return {
                     roomInviteToken: url,
                 };
             }
             catch (error) {
+                console.log(error);
                 return errorResponse(500, {
                     message: "Internal Server Error",
                     code: "internal_server_error",
@@ -150,14 +155,14 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "token_required",
                     });
                 }
-                const user = yield user_model_1.default.findOne({ where: { email } });
+                const user = yield prisma_1.default.users.findUnique({ where: { email } });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
-                const tokenInvite = yield tokenInviteRoom_model_1.default.findOne({
+                const tokenInvite = yield prisma_1.default.inviteTokenRooms.findUnique({
                     where: { token },
                 });
                 if (!tokenInvite) {
@@ -166,23 +171,31 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "invalid_token",
                     });
                 }
-                const isExpired = yield tokenInviteRoom_model_1.default.verifyAndDeleteExpiredToken(tokenInvite);
+                const isExpired = yield tokenInviteRoom_model_1.TokenInviteRoomModel.verifyAndDeleteTokenInviteRoom(tokenInvite);
                 if (!isExpired) {
-                    const room = yield room_model_1.default.findOne({ where: { id: tokenInvite.room } });
+                    const room = yield prisma_1.default.rooms.findUnique({
+                        where: { id: tokenInvite.room },
+                        include: { RoomUsers: true },
+                    });
                     if (!room) {
                         return errorResponse(404, {
                             message: "Room not found",
                             code: "room_not_found",
                         });
                     }
-                    const users = yield room.getUsers();
-                    if (users.find((u) => u.id === user.id)) {
+                    if (room.RoomUsers.find((u) => u.userId === user.id)) {
                         return errorResponse(400, {
-                            message: "User already in room",
+                            message: "UserModel already in room",
                             code: "user_already_in_room",
                         });
                     }
-                    yield room.addUsers([user]);
+                    /*Add User To the room*/
+                    yield prisma_1.default.roomUsers.create({
+                        data: {
+                            roomId: room.id,
+                            userId: user.id,
+                        },
+                    });
                     this.setStatus(200);
                     return {
                         message: "Successfully joined the room",
@@ -215,14 +228,16 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: verifiedToken.code,
                     });
                 }
-                const user = yield user_model_1.default.findOne({ where: { id: verifiedToken.id } });
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: verifiedToken.id },
+                });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
-                const room = yield room_model_1.default.findOne({ where: { id: roomId } });
+                const room = yield prisma_1.default.rooms.findUnique({ where: { id: roomId } });
                 if (!room) {
                     return errorResponse(404, {
                         message: "Room not found",
@@ -235,7 +250,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "unauthorized",
                     });
                 }
-                yield room.destroy();
+                yield prisma_1.default.rooms.delete({ where: { id: roomId } });
                 this.setStatus(200);
                 return room;
             }
@@ -260,14 +275,16 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: verifiedToken.code,
                     });
                 }
-                const user = yield user_model_1.default.findOne({ where: { id: verifiedToken.id } });
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: verifiedToken.id },
+                });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
-                const room = yield room_model_1.default.findOne({ where: { id: roomId } });
+                const room = yield prisma_1.default.rooms.findUnique({ where: { id: roomId } });
                 if (!room) {
                     return errorResponse(404, {
                         message: "Room not found",
@@ -287,8 +304,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "title_required",
                     });
                 }
-                room.title = title;
-                yield room.save();
+                prisma_1.default.rooms.update({ where: { id: roomId }, data: { title } });
                 this.setStatus(200);
                 return room;
             }
@@ -302,7 +318,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
         });
     }
     /*Get room by id*/
-    getRoomById(roomId, req, errorResponse) {
+    getRoomById(roomSlug, req, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
@@ -313,22 +329,26 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: verifiedToken.code,
                     });
                 }
-                const user = yield user_model_1.default.findOne({ where: { id: verifiedToken.id } });
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: verifiedToken.id },
+                });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "User not found",
+                        message: "UserModel not found",
                         code: "user_not_found",
                     });
                 }
-                const room = yield room_model_1.default.findOne({ where: { id: roomId } });
+                const room = yield prisma_1.default.rooms.findUnique({
+                    where: { slug: roomSlug },
+                    include: { RoomUsers: true },
+                });
                 if (!room) {
                     return errorResponse(404, {
                         message: "Room not found",
                         code: "room_not_found",
                     });
                 }
-                const usersOfTheRoom = yield room.getUsers();
-                if (!usersOfTheRoom.find((u) => u.id === user.id)) {
+                if (!room.RoomUsers.find((u) => u.userId === user.id)) {
                     return errorResponse(401, {
                         message: "Unauthorized",
                         code: "unauthorized",
@@ -344,6 +364,41 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                     code: "internal_server_error",
                 });
             }
+        });
+    }
+    generateEmailContent(nameWhoInvite, url, nameRoom) {
+        return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gift Sync - Réinitialisation de votre mot de passe</title>
+    </head>
+    <body style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAFAFA; color: #1F1F1F;">
+        <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+            <img src="https://www.giftsync.fr/images/gslogo.png" alt="Logo" style="width: 200px; max-width: 100%; height: auto; margin-bottom: 20px;">
+            <h1 style="color: #4747FF; margin: 0; font-size: 24px; font-weight: bold;">${nameWhoInvite} vous invite à rejoindre la famille ${nameRoom}</h1>
+        </div>
+        <div style="text-align: center; padding-top: 20px;">
+            <p style="margin-bottom: 15px;">Bonjour,</p>
+            <p style="margin-bottom: 30px;">Cliquez sur le lien ci-dessous pour rejoindre la famille ${nameRoom}.</p>
+            <a style="padding: 12px;text-decoration: none; background:#4747FF; color:#FAFAFA; border-radius: 12px;margin-bottom: 30px; font-weight: 500" href="${url}">Rejoindre</a>
+        </div>
+    </body>
+    </html>
+  `;
+    }
+    sendMailInvitation(nameWhoInvite, email, url, nameRoom) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const contentMail = this.generateEmailContent(nameWhoInvite, url, nameRoom);
+            const mailOptions = {
+                from: "noreply@giftsync.fr",
+                to: email,
+                subject: `Gift Sync - ${nameWhoInvite} vous invite à rejoindre la famille ${nameRoom}`,
+                html: contentMail,
+            };
+            yield mailConfig_1.default.sendMail(mailOptions);
         });
     }
 };
@@ -389,7 +444,7 @@ __decorate([
     __param(3, (0, tsoa_1.Res)())
 ], RoomController.prototype, "updateRoom", null);
 __decorate([
-    (0, tsoa_1.Get)("{roomId}"),
+    (0, tsoa_1.Get)("{roomSlug}"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     __param(0, (0, tsoa_1.Path)()),
     __param(1, (0, tsoa_1.Request)()),

@@ -16,7 +16,6 @@ exports.getToken = getToken;
 exports.jwtVerify = jwtVerify;
 exports.securityMiddleware = securityMiddleware;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const authtoken_model_1 = __importDefault(require("../models/authtoken.model"));
 function getToken(headers) {
     const authorizationHeader = headers["authorization"];
     if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
@@ -39,9 +38,10 @@ function jwtVerify(token) {
                     code: "token_invalid",
                 };
             }
-            const tokenExists = yield authtoken_model_1.default.findOne({
-                where: { user: decodedToken.id },
-            });
+            /*    const tokenExists = await AuthtokenModel.findOne({
+              where: { user: decodedToken.id },
+            });*/
+            const tokenExists = true;
             if (!tokenExists) {
                 return {
                     message: "Invalid token",

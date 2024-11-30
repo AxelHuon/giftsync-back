@@ -1,4 +1,4 @@
-import transport from "../mailConfig/mailConfig";
+import transport from "../config/mailConfig";
 
 export const sendEmail = async (
   to: string,
