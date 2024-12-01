@@ -13,14 +13,15 @@ class CreateRoomRequest {
 exports.CreateRoomRequest = CreateRoomRequest;
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(5)
+    (0, class_validator_1.MinLength)(3)
 ], CreateRoomRequest.prototype, "title", void 0);
 class InviteUserRequest {
 }
 exports.InviteUserRequest = InviteUserRequest;
 __decorate([
-    (0, class_validator_1.IsEmail)()
-], InviteUserRequest.prototype, "email", void 0);
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsEmail)({}, { each: true })
+], InviteUserRequest.prototype, "emails", void 0);
 __decorate([
     (0, class_validator_1.IsString)()
 ], InviteUserRequest.prototype, "roomId", void 0);

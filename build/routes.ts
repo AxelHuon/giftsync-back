@@ -131,7 +131,7 @@ const models: TsoaRoute.Models = {
     "InviteUserRequest": {
         "dataType": "refObject",
         "properties": {
-            "email": {"dataType":"string","required":true},
+            "emails": {"dataType":"array","array":{"dataType":"string"},"required":true},
             "roomId": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
@@ -141,7 +141,8 @@ const models: TsoaRoute.Models = {
         "dataType": "refObject",
         "properties": {
             "message": {"dataType":"string","required":true},
-            "roomId": {"dataType":"string","required":true},
+            "code": {"dataType":"string","required":true},
+            "roomSlug": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
@@ -491,11 +492,11 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.post('/api/room/invite-user',
+        app.post('/api/room/invite-users',
             ...(fetchMiddlewares<RequestHandler>(RoomController)),
-            ...(fetchMiddlewares<RequestHandler>(RoomController.prototype.inviteUser)),
+            ...(fetchMiddlewares<RequestHandler>(RoomController.prototype.inviteUsers)),
 
-            async function RoomController_inviteUser(request: ExRequest, response: ExResponse, next: any) {
+            async function RoomController_inviteUsers(request: ExRequest, response: ExResponse, next: any) {
             const args: Record<string, TsoaRoute.ParameterSchema> = {
                     req: {"in":"request","name":"req","required":true,"dataType":"object"},
                     body: {"in":"body","name":"body","required":true,"ref":"InviteUserRequest"},
@@ -511,7 +512,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 const controller = new RoomController();
 
               await templateService.apiHandler({
-                methodName: 'inviteUser',
+                methodName: 'inviteUsers',
                 controller,
                 response,
                 next,

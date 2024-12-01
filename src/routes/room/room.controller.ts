@@ -84,14 +84,14 @@ export class RoomController extends Controller {
     }
   }
 
-  @Post("invite-user")
+  @Post("invite-users")
   @Middlewares(securityMiddleware)
   @Middlewares([validationBodyMiddleware(InviteUserRequest)])
-  public async inviteUser(
+  public async inviteUsers(
     @Request() req: any,
     @Body() body: InviteUserRequest,
     @Res() errorResponse: TsoaResponse<401 | 404 | 422 | 500, ErrorResponse>,
-  ): Promise<InviteUserResponse> {
+  ): Promise<{ invitedUsers: InviteUserResponse[] }> {
     try {
       const token = getToken(req.headers);
       const verifiedToken = await jwtVerify(token);
@@ -101,28 +101,33 @@ export class RoomController extends Controller {
           code: verifiedToken.code,
         });
       }
+
       const userWhoInvite = await prisma.users.findUnique({
         where: { id: verifiedToken.id },
       });
       if (!userWhoInvite) {
         return errorResponse(404, {
-          message: "UserModel not found",
+          message: "User not found",
           code: "user_not_found",
         });
       }
-      const { email, roomId } = body;
-      if (!email) {
+
+      const { emails, roomId } = body;
+
+      if (!emails || emails.length === 0) {
         return errorResponse(422, {
-          message: "Email is required",
-          code: "email_required",
+          message: "Emails are required",
+          code: "emails_required",
         });
       }
+
       if (!roomId) {
         return errorResponse(422, {
           message: "RoomId is required",
           code: "room_id_required",
         });
       }
+
       const room = await prisma.rooms.findUnique({
         where: { id: roomId },
         include: { RoomUsers: true },
@@ -142,21 +147,22 @@ export class RoomController extends Controller {
         });
       }
 
-      const roomInviteToken = await TokenInviteRoomModel.createTokenInviteRoom(
-        room.id,
-        email,
-      );
-
-      const url = `${process.env.FRONTEND_URL}/room/join/${roomInviteToken}`;
-
+      const invitedUsers: InviteUserResponse[] = [];
       const nameWhoInvite =
         userWhoInvite.firstName + " " + userWhoInvite.lastName;
 
-      await this.sendMailInvitation(nameWhoInvite, email, url, room.title);
+      for (const email of emails) {
+        const roomInviteToken =
+          await TokenInviteRoomModel.createTokenInviteRoom(room.id, email);
+
+        const url = `${process.env.FRONTEND_URL}/families/join/${roomInviteToken}`;
+
+        await this.sendMailInvitation(nameWhoInvite, email, url, room.title);
+
+        invitedUsers.push({ roomInviteToken: url });
+      }
       this.setStatus(200);
-      return {
-        roomInviteToken: url,
-      };
+      return { invitedUsers };
     } catch (error) {
       console.log(error);
       return errorResponse(500, {
@@ -236,11 +242,13 @@ export class RoomController extends Controller {
             userId: user.id,
           },
         });
+        await prisma.inviteTokenRooms.delete({ where: { token } });
 
         this.setStatus(200);
         return {
           message: "Successfully joined the room",
-          roomId: room.id,
+          code: "success",
+          roomSlug: room.slug,
         };
       } else {
         return errorResponse(400, {
@@ -394,7 +402,9 @@ export class RoomController extends Controller {
       }
       const room = await prisma.rooms.findUnique({
         where: { slug: roomSlug },
-        include: { RoomUsers: true },
+        include: {
+          RoomUsers: true,
+        },
       });
       if (!room) {
         return errorResponse(404, {
@@ -465,7 +475,6 @@ export class RoomController extends Controller {
         },
       });
 
-      // Transformer la réponse pour remplacer `RoomUsers` par `users`
       const transformedRooms = roomsOfTheUser.map(({ RoomUsers, ...rest }) => ({
         ...rest,
         users: RoomUsers.map((roomUser) => roomUser.Users), // Extraire les utilisateurs

@@ -83,7 +83,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
             }
         });
     }
-    inviteUser(req, body, errorResponse) {
+    inviteUsers(req, body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
@@ -99,15 +99,15 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                 });
                 if (!userWhoInvite) {
                     return errorResponse(404, {
-                        message: "UserModel not found",
+                        message: "User not found",
                         code: "user_not_found",
                     });
                 }
-                const { email, roomId } = body;
-                if (!email) {
+                const { emails, roomId } = body;
+                if (!emails || emails.length === 0) {
                     return errorResponse(422, {
-                        message: "Email is required",
-                        code: "email_required",
+                        message: "Emails are required",
+                        code: "emails_required",
                     });
                 }
                 if (!roomId) {
@@ -132,14 +132,16 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "unauthorized",
                     });
                 }
-                const roomInviteToken = yield tokenInviteRoom_model_1.TokenInviteRoomModel.createTokenInviteRoom(room.id, email);
-                const url = `${process.env.FRONTEND_URL}/room/join/${roomInviteToken}`;
+                const invitedUsers = [];
                 const nameWhoInvite = userWhoInvite.firstName + " " + userWhoInvite.lastName;
-                yield this.sendMailInvitation(nameWhoInvite, email, url, room.title);
+                for (const email of emails) {
+                    const roomInviteToken = yield tokenInviteRoom_model_1.TokenInviteRoomModel.createTokenInviteRoom(room.id, email);
+                    const url = `${process.env.FRONTEND_URL}/families/join/${roomInviteToken}`;
+                    yield this.sendMailInvitation(nameWhoInvite, email, url, room.title);
+                    invitedUsers.push({ roomInviteToken: url });
+                }
                 this.setStatus(200);
-                return {
-                    roomInviteToken: url,
-                };
+                return { invitedUsers };
             }
             catch (error) {
                 console.log(error);
@@ -207,10 +209,12 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                             userId: user.id,
                         },
                     });
+                    yield prisma_1.default.inviteTokenRooms.delete({ where: { token } });
                     this.setStatus(200);
                     return {
                         message: "Successfully joined the room",
-                        roomId: room.id,
+                        code: "success",
+                        roomSlug: room.slug,
                     };
                 }
                 else {
@@ -351,7 +355,9 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                 }
                 const room = yield prisma_1.default.rooms.findUnique({
                     where: { slug: roomSlug },
-                    include: { RoomUsers: true },
+                    include: {
+                        RoomUsers: true,
+                    },
                 });
                 if (!room) {
                     return errorResponse(404, {
@@ -416,7 +422,6 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         },
                     },
                 });
-                // Transformer la réponse pour remplacer `RoomUsers` par `users`
                 const transformedRooms = roomsOfTheUser.map((_a) => {
                     var { RoomUsers } = _a, rest = __rest(_a, ["RoomUsers"]);
                     return (Object.assign(Object.assign({}, rest), { users: RoomUsers.map((roomUser) => roomUser.Users) }));
@@ -479,13 +484,13 @@ __decorate([
     __param(2, (0, tsoa_1.Res)())
 ], RoomController.prototype, "createRoom", null);
 __decorate([
-    (0, tsoa_1.Post)("invite-user"),
+    (0, tsoa_1.Post)("invite-users"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(room_interface_1.InviteUserRequest)]),
     __param(0, (0, tsoa_1.Request)()),
     __param(1, (0, tsoa_1.Body)()),
     __param(2, (0, tsoa_1.Res)())
-], RoomController.prototype, "inviteUser", null);
+], RoomController.prototype, "inviteUsers", null);
 __decorate([
     (0, tsoa_1.Post)("join/:token"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),

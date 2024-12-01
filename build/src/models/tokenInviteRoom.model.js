@@ -24,6 +24,9 @@ TokenInviteRoomModel.createTokenInviteRoom = (roomId, emailToInvite) => __awaite
     let expiredAt = new Date();
     expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("7200"));
     let _token = (0, uuid_1.v4)();
+    yield prisma_1.default.inviteTokenRooms.delete({
+        where: { emailToAccept: emailToInvite },
+    });
     let refreshToken = yield prisma_1.default.inviteTokenRooms.create({
         data: {
             token: _token,

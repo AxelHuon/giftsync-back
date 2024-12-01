@@ -14,8 +14,19 @@ export class TokenInviteRoomModel {
     emailToInvite: string,
   ): Promise<string> => {
     let expiredAt = new Date();
-    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("7200"));
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("2629800"));
     let _token = uuidv4();
+
+    const tokenBDD = await prisma.inviteTokenRooms.findUnique({
+      where: { emailToAccept: emailToInvite },
+    });
+
+    if (tokenBDD) {
+      await prisma.inviteTokenRooms.delete({
+        where: { emailToAccept: emailToInvite },
+      });
+    }
+
     let refreshToken = await prisma.inviteTokenRooms.create({
       data: {
         token: _token,

@@ -137,7 +137,7 @@ const models = {
     "InviteUserRequest": {
         "dataType": "refObject",
         "properties": {
-            "email": { "dataType": "string", "required": true },
+            "emails": { "dataType": "array", "array": { "dataType": "string" }, "required": true },
             "roomId": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
@@ -147,7 +147,8 @@ const models = {
         "dataType": "refObject",
         "properties": {
             "message": { "dataType": "string", "required": true },
-            "roomId": { "dataType": "string", "required": true },
+            "code": { "dataType": "string", "required": true },
+            "roomSlug": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
@@ -457,7 +458,7 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.post('/api/room/invite-user', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.inviteUser)), function RoomController_inviteUser(request, response, next) {
+    app.post('/api/room/invite-users', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.inviteUsers)), function RoomController_inviteUsers(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
@@ -470,7 +471,7 @@ function RegisterRoutes(app, opts) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new room_controller_1.RoomController();
                 yield templateService.apiHandler({
-                    methodName: 'inviteUser',
+                    methodName: 'inviteUsers',
                     controller,
                     response,
                     next,

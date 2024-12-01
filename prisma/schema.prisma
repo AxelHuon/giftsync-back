@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["omitApi"]
 }
 
@@ -24,23 +24,13 @@ model Gifts {
   id         String       @id @db.VarChar(255)
   giftUrl    String       @db.VarChar(255)
   price      Float
-  listId     String       @db.Uuid
+  ownerId    String       @db.Uuid
+  roomId     String       @db.Uuid
   createdAt  DateTime     @db.Timestamptz(6)
   updatedAt  DateTime     @db.Timestamptz(6)
   GiftDonors GiftDonors[]
-  Lists      Lists        @relation(fields: [listId], references: [id], onDelete: NoAction)
-}
-
-model Lists {
-  id        String   @id @db.Uuid
-  name      String   @db.VarChar(255)
-  ownerId   String   @db.Uuid
-  roomId    String   @db.Uuid
-  createdAt DateTime @db.Timestamptz(6)
-  updatedAt DateTime @db.Timestamptz(6)
-  Gifts     Gifts[]
-  Users     Users    @relation(fields: [ownerId], references: [id], onDelete: NoAction)
-  Rooms     Rooms    @relation(fields: [roomId], references: [id], onDelete: NoAction)
+  Users      Users        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  Rooms      Rooms        @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model RoomUsers {
@@ -59,7 +49,7 @@ model Rooms {
   title     String      @db.VarChar(255)
   createdAt DateTime    @db.Timestamptz(6)
   updatedAt DateTime    @db.Timestamptz(6)
-  Lists     Lists[]
+  Gifts     Gifts[]
   RoomUsers RoomUsers[]
 }
 
@@ -83,7 +73,7 @@ model Users {
   createdAt      DateTime     @db.Timestamptz(6)
   updatedAt      DateTime     @db.Timestamptz(6)
   GiftDonors     GiftDonors[]
-  Lists          Lists[]
+  Gifts          Gifts[]
   RoomUsers      RoomUsers[]
 }
 
@@ -109,7 +99,7 @@ model inviteTokenRooms {
   id            String   @id @db.Uuid
   room          String   @db.Uuid
   token         String   @unique @db.VarChar(255)
-  emailToAccept String   @db.VarChar(255)
+  emailToAccept String   @unique @db.VarChar(255)
   expiryDate    DateTime @db.Timestamptz(6)
   createdAt     DateTime @db.Timestamptz(6)
   updatedAt     DateTime @db.Timestamptz(6)
