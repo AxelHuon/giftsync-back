@@ -26,3 +26,19 @@ export interface JoinRoomResponse {
   message: string;
   roomId: string;
 }
+
+export interface UserCollectionGetUserOfRoom {
+  firstName: string;
+  lastName: string;
+  profilePicture: string;
+}
+
+export interface GetRoomOfUserResponse {
+  id: string;
+  ownerId: string;
+  title: string;
+  slug: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  users: UserCollectionGetUserOfRoom[];
+}

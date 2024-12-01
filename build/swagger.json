@@ -172,6 +172,38 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"RoomAttributes": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"ownerId": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"required": [
+					"id",
+					"ownerId",
+					"title",
+					"slug"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"CreateRoomRequest": {
 				"properties": {
 					"title": {
@@ -240,7 +272,27 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"RoomAttributes": {
+			"UserCollectionGetUserOfRoom": {
+				"properties": {
+					"firstName": {
+						"type": "string"
+					},
+					"lastName": {
+						"type": "string"
+					},
+					"profilePicture": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"firstName",
+					"lastName",
+					"profilePicture"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"GetRoomOfUserResponse": {
 				"properties": {
 					"id": {
 						"type": "string"
@@ -261,13 +313,20 @@
 					"updatedAt": {
 						"type": "string",
 						"format": "date-time"
+					},
+					"users": {
+						"items": {
+							"$ref": "#/components/schemas/UserCollectionGetUserOfRoom"
+						},
+						"type": "array"
 					}
 				},
 				"required": [
 					"id",
 					"ownerId",
 					"title",
-					"slug"
+					"slug",
+					"users"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -849,7 +908,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/CreateRoomRequest"
+									"$ref": "#/components/schemas/RoomAttributes"
 								}
 							}
 						}
@@ -1266,6 +1325,61 @@
 						}
 					}
 				]
+			}
+		},
+		"/room": {
+			"get": {
+				"operationId": "GetRoomByOfUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/GetRoomOfUserResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Room"
+				],
+				"security": [],
+				"parameters": []
 			}
 		},
 		"/auth/signup": {

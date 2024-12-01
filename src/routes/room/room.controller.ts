@@ -26,6 +26,7 @@ import { TokenInviteRoomModel } from "../../models/tokenInviteRoom.model";
 import { ErrorResponse } from "../../types/Error";
 import {
   CreateRoomRequest,
+  GetRoomOfUserResponse,
   InviteUserRequest,
   InviteUserResponse,
   JoinRoomRequest,
@@ -44,7 +45,7 @@ export class RoomController extends Controller {
     @Request() req: any,
     @Body() body: CreateRoomRequest,
     @Res() errorResponse: TsoaResponse<401 | 404 | 422 | 500, ErrorResponse>,
-  ): Promise<CreateRoomRequest> {
+  ): Promise<RoomAttributes> {
     try {
       const token = getToken(req.headers);
       const verifiedToken = await jwtVerify(token);
@@ -410,6 +411,68 @@ export class RoomController extends Controller {
       }
       this.setStatus(200);
       return room;
+    } catch (error) {
+      console.log("error", error);
+      return errorResponse(500, {
+        message: "Internal Server Error",
+        code: "internal_server_error",
+      });
+    }
+  }
+
+  /*Get room by id*/
+  @Get("/")
+  @Middlewares(securityMiddleware)
+  public async getRoomByOfUser(
+    @Request() req: any,
+    @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
+  ): Promise<GetRoomOfUserResponse[]> {
+    try {
+      const token = getToken(req.headers);
+      const verifiedToken = await jwtVerify(token);
+      if ("code" in verifiedToken) {
+        return errorResponse(401, {
+          message: verifiedToken.message,
+          code: verifiedToken.code,
+        });
+      }
+      const user = await prisma.users.findUnique({
+        where: { id: verifiedToken.id },
+        include: { RoomUsers: true },
+      });
+
+      if (!user) {
+        return errorResponse(404, {
+          message: "UserModel not found",
+          code: "user_not_found",
+        });
+      }
+      const rooms = user.RoomUsers.map((room) => room.roomId);
+      const roomsOfTheUser = await prisma.rooms.findMany({
+        where: { id: { in: rooms } },
+        include: {
+          RoomUsers: {
+            include: {
+              Users: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Transformer la réponse pour remplacer `RoomUsers` par `users`
+      const transformedRooms = roomsOfTheUser.map(({ RoomUsers, ...rest }) => ({
+        ...rest,
+        users: RoomUsers.map((roomUser) => roomUser.Users), // Extraire les utilisateurs
+      }));
+
+      return transformedRooms;
+      this.setStatus(200);
     } catch (error) {
       console.log("error", error);
       return errorResponse(500, {

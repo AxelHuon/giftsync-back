@@ -64,7 +64,7 @@ let UserController = class UserController extends tsoa_1.Controller {
                 });
                 if (!user) {
                     return errorResponse(404, {
-                        message: "UserModel not found",
+                        message: "user not found",
                         code: "user_not_found",
                     });
                 }

@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import {
+  ArrayMaxSize,
   IsArray,
   IsEmail,
   IsNotEmpty,
@@ -22,6 +23,7 @@ export class SecretSantaRequest {
   @IsNotEmpty()
   maxPrice: number;
   @IsArray()
+  @ArrayMaxSize(12)
   @ValidateNested({ each: true })
   @Type(() => UserSecretSanta)
   users: UserSecretSanta[];

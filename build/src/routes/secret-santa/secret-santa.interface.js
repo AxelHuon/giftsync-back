@@ -29,6 +29,7 @@ __decorate([
 ], SecretSantaRequest.prototype, "maxPrice", void 0);
 __decorate([
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMaxSize)(12),
     (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => UserSecretSanta)
 ], SecretSantaRequest.prototype, "users", void 0);

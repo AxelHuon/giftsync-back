@@ -17,6 +17,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -366,6 +377,62 @@ let RoomController = class RoomController extends tsoa_1.Controller {
             }
         });
     }
+    /*Get room by id*/
+    getRoomByOfUser(req, errorResponse) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const token = (0, auth_middleware_1.getToken)(req.headers);
+                const verifiedToken = yield (0, auth_middleware_1.jwtVerify)(token);
+                if ("code" in verifiedToken) {
+                    return errorResponse(401, {
+                        message: verifiedToken.message,
+                        code: verifiedToken.code,
+                    });
+                }
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: verifiedToken.id },
+                    include: { RoomUsers: true },
+                });
+                if (!user) {
+                    return errorResponse(404, {
+                        message: "UserModel not found",
+                        code: "user_not_found",
+                    });
+                }
+                const rooms = user.RoomUsers.map((room) => room.roomId);
+                const roomsOfTheUser = yield prisma_1.default.rooms.findMany({
+                    where: { id: { in: rooms } },
+                    include: {
+                        RoomUsers: {
+                            include: {
+                                Users: {
+                                    select: {
+                                        firstName: true,
+                                        lastName: true,
+                                        profilePicture: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+                // Transformer la réponse pour remplacer `RoomUsers` par `users`
+                const transformedRooms = roomsOfTheUser.map((_a) => {
+                    var { RoomUsers } = _a, rest = __rest(_a, ["RoomUsers"]);
+                    return (Object.assign(Object.assign({}, rest), { users: RoomUsers.map((roomUser) => roomUser.Users) }));
+                });
+                return transformedRooms;
+                this.setStatus(200);
+            }
+            catch (error) {
+                console.log("error", error);
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
+                });
+            }
+        });
+    }
     generateEmailContent(nameWhoInvite, url, nameRoom) {
         return `
     <!DOCTYPE html>
@@ -450,6 +517,12 @@ __decorate([
     __param(1, (0, tsoa_1.Request)()),
     __param(2, (0, tsoa_1.Res)())
 ], RoomController.prototype, "getRoomById", null);
+__decorate([
+    (0, tsoa_1.Get)("/"),
+    (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
+    __param(0, (0, tsoa_1.Request)()),
+    __param(1, (0, tsoa_1.Res)())
+], RoomController.prototype, "getRoomByOfUser", null);
 exports.RoomController = RoomController = __decorate([
     (0, tsoa_1.Tags)("Room"),
     (0, tsoa_1.Route)("room")

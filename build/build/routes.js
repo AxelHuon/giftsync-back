@@ -105,6 +105,19 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "RoomAttributes": {
+        "dataType": "refObject",
+        "properties": {
+            "id": { "dataType": "string", "required": true },
+            "ownerId": { "dataType": "string", "required": true },
+            "title": { "dataType": "string", "required": true },
+            "slug": { "dataType": "string", "required": true },
+            "createdAt": { "dataType": "datetime" },
+            "updatedAt": { "dataType": "datetime" },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "CreateRoomRequest": {
         "dataType": "refObject",
         "properties": {
@@ -147,7 +160,17 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "RoomAttributes": {
+    "UserCollectionGetUserOfRoom": {
+        "dataType": "refObject",
+        "properties": {
+            "firstName": { "dataType": "string", "required": true },
+            "lastName": { "dataType": "string", "required": true },
+            "profilePicture": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GetRoomOfUserResponse": {
         "dataType": "refObject",
         "properties": {
             "id": { "dataType": "string", "required": true },
@@ -156,6 +179,7 @@ const models = {
             "slug": { "dataType": "string", "required": true },
             "createdAt": { "dataType": "datetime" },
             "updatedAt": { "dataType": "datetime" },
+            "users": { "dataType": "array", "array": { "dataType": "refObject", "ref": "UserCollectionGetUserOfRoom" }, "required": true },
         },
         "additionalProperties": false,
     },
@@ -556,6 +580,32 @@ function RegisterRoutes(app, opts) {
                 const controller = new room_controller_1.RoomController();
                 yield templateService.apiHandler({
                     methodName: 'getRoomById',
+                    controller,
+                    response,
+                    next,
+                    validatedArgs,
+                    successStatus: undefined,
+                });
+            }
+            catch (err) {
+                return next(err);
+            }
+        });
+    });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.get('/api/room', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.getRoomByOfUser)), function RoomController_getRoomByOfUser(request, response, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const args = {
+                req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+            };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            let validatedArgs = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+                const controller = new room_controller_1.RoomController();
+                yield templateService.apiHandler({
+                    methodName: 'getRoomByOfUser',
                     controller,
                     response,
                     next,
