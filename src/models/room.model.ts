@@ -48,13 +48,24 @@ export class RoomModel {
     return room;
   };
 
-  static getUsersOfARoom = async (
+  static putRoom = async (
+    title: string,
     roomId: string,
-  ): Promise<RoomUserAttributes[]> => {
-    return await prisma.roomUsers.findMany({
-      where: {
-        roomId: roomId,
+  ): Promise<RoomAttributes> => {
+    let slug = slugify(title, { lower: true });
+    let uniqueSlug = slug;
+    let count = 1;
+    while (await prisma.rooms.findUnique({ where: { slug: uniqueSlug } })) {
+      uniqueSlug = `${slug}-${count++}`;
+    }
+    const room = await prisma.rooms.update({
+      where: { id: roomId },
+      data: {
+        title: title,
+        slug: uniqueSlug,
+        updatedAt: new Date().toISOString(),
       },
     });
+    return room;
   };
 }

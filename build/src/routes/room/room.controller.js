@@ -63,7 +63,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "user_not_found",
                     });
                 }
-                const { title } = body;
+                const { title, emails } = body;
                 if (!title) {
                     return errorResponse(422, {
                         message: "Title is required",
@@ -71,6 +71,16 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                     });
                 }
                 const newRoom = yield room_model_1.RoomModel.createRoom(title, verifiedToken.id);
+                if (emails && emails.length > 0) {
+                    const invitedUsers = [];
+                    const nameWhoInvite = owner.firstName + " " + owner.lastName;
+                    for (const email of emails) {
+                        const roomInviteToken = yield tokenInviteRoom_model_1.TokenInviteRoomModel.createTokenInviteRoom(newRoom.id, email);
+                        const url = `${process.env.FRONTEND_URL}/families/join/${roomInviteToken}`;
+                        yield this.sendMailInvitation(nameWhoInvite, email, url, newRoom.title);
+                        invitedUsers.push({ roomInviteToken: url });
+                    }
+                }
                 this.setStatus(200);
                 return newRoom;
             }
@@ -279,7 +289,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
         });
     }
     /*Put title of a Room*/
-    updateRoom(req, roomId, body, errorResponse) {
+    putRoom(req, roomId, body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
@@ -319,9 +329,61 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "title_required",
                     });
                 }
-                prisma_1.default.rooms.update({ where: { id: roomId }, data: { title } });
+                const updatedRoom = yield room_model_1.RoomModel.putRoom(title, roomId);
                 this.setStatus(200);
-                return room;
+                return updatedRoom;
+            }
+            catch (error) {
+                console.log("error", error);
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
+                });
+            }
+        });
+    }
+    deleteUserFromARomm(req, roomId, userId, errorResponse) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const token = (0, auth_middleware_1.getToken)(req.headers);
+                const verifiedToken = yield (0, auth_middleware_1.jwtVerify)(token);
+                if ("code" in verifiedToken) {
+                    return errorResponse(401, {
+                        message: verifiedToken.message,
+                        code: verifiedToken.code,
+                    });
+                }
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { id: verifiedToken.id },
+                });
+                if (!user) {
+                    return errorResponse(404, {
+                        message: "UserModel not found",
+                        code: "user_not_found",
+                    });
+                }
+                const room = yield prisma_1.default.rooms.findUnique({ where: { id: roomId } });
+                if (!room) {
+                    return errorResponse(404, {
+                        message: "Room not found",
+                        code: "room_not_found",
+                    });
+                }
+                if (room.ownerId !== user.id) {
+                    return errorResponse(401, {
+                        message: "Unauthorized",
+                        code: "unauthorized",
+                    });
+                }
+                yield prisma_1.default.roomUsers.delete({
+                    where: {
+                        roomId_userId: {
+                            roomId,
+                            userId,
+                        },
+                    },
+                });
+                this.setStatus(200);
             }
             catch (error) {
                 console.log("error", error);
@@ -356,7 +418,18 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                 const room = yield prisma_1.default.rooms.findUnique({
                     where: { slug: roomSlug },
                     include: {
-                        RoomUsers: true,
+                        RoomUsers: {
+                            include: {
+                                Users: {
+                                    select: {
+                                        firstName: true,
+                                        lastName: true,
+                                        id: true,
+                                        profilePicture: true,
+                                    },
+                                },
+                            },
+                        },
                     },
                 });
                 if (!room) {
@@ -371,8 +444,10 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "unauthorized",
                     });
                 }
+                const transformedRooms = Object.assign(Object.assign({}, room), { users: room.RoomUsers.map((roomUser) => roomUser.Users) });
                 this.setStatus(200);
-                return room;
+                delete transformedRooms.RoomUsers;
+                return transformedRooms;
             }
             catch (error) {
                 console.log("error", error);
@@ -413,6 +488,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                             include: {
                                 Users: {
                                     select: {
+                                        id: true,
                                         firstName: true,
                                         lastName: true,
                                         profilePicture: true,
@@ -514,7 +590,15 @@ __decorate([
     __param(1, (0, tsoa_1.Path)()),
     __param(2, (0, tsoa_1.Body)()),
     __param(3, (0, tsoa_1.Res)())
-], RoomController.prototype, "updateRoom", null);
+], RoomController.prototype, "putRoom", null);
+__decorate([
+    (0, tsoa_1.Delete)("delete-user/:roomId/:userId"),
+    (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
+    __param(0, (0, tsoa_1.Request)()),
+    __param(1, (0, tsoa_1.Path)()),
+    __param(2, (0, tsoa_1.Path)()),
+    __param(3, (0, tsoa_1.Res)())
+], RoomController.prototype, "deleteUserFromARomm", null);
 __decorate([
     (0, tsoa_1.Get)("{roomSlug}"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),

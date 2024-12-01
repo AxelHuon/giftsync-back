@@ -22,11 +22,16 @@ exports.TokenInviteRoomModel = TokenInviteRoomModel;
 _a = TokenInviteRoomModel;
 TokenInviteRoomModel.createTokenInviteRoom = (roomId, emailToInvite) => __awaiter(void 0, void 0, void 0, function* () {
     let expiredAt = new Date();
-    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("7200"));
+    expiredAt.setSeconds(expiredAt.getSeconds() + parseInt("2629800"));
     let _token = (0, uuid_1.v4)();
-    yield prisma_1.default.inviteTokenRooms.delete({
+    const tokenBDD = yield prisma_1.default.inviteTokenRooms.findUnique({
         where: { emailToAccept: emailToInvite },
     });
+    if (tokenBDD) {
+        yield prisma_1.default.inviteTokenRooms.delete({
+            where: { emailToAccept: emailToInvite },
+        });
+    }
     let refreshToken = yield prisma_1.default.inviteTokenRooms.create({
         data: {
             token: _token,

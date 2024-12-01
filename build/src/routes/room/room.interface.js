@@ -6,7 +6,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JoinRoomRequest = exports.InviteUserRequest = exports.CreateRoomRequest = void 0;
+exports.JoinRoomRequest = exports.InviteUserRequest = exports.EditRoomRequest = exports.CreateRoomRequest = void 0;
 const class_validator_1 = require("class-validator");
 class CreateRoomRequest {
 }
@@ -15,6 +15,18 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MinLength)(3)
 ], CreateRoomRequest.prototype, "title", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsEmail)({}, { each: true })
+], CreateRoomRequest.prototype, "emails", void 0);
+class EditRoomRequest {
+}
+exports.EditRoomRequest = EditRoomRequest;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(3)
+], EditRoomRequest.prototype, "title", void 0);
 class InviteUserRequest {
 }
 exports.InviteUserRequest = InviteUserRequest;

@@ -26,6 +26,7 @@ import { TokenInviteRoomModel } from "../../models/tokenInviteRoom.model";
 import { ErrorResponse } from "../../types/Error";
 import {
   CreateRoomRequest,
+  EditRoomRequest,
   GetRoomOfUserResponse,
   InviteUserRequest,
   InviteUserResponse,
@@ -64,7 +65,7 @@ export class RoomController extends Controller {
           code: "user_not_found",
         });
       }
-      const { title } = body;
+      const { title, emails } = body;
       if (!title) {
         return errorResponse(422, {
           message: "Title is required",
@@ -72,6 +73,28 @@ export class RoomController extends Controller {
         });
       }
       const newRoom = await RoomModel.createRoom(title, verifiedToken.id);
+
+      if (emails && emails.length > 0) {
+        const invitedUsers: InviteUserResponse[] = [];
+        const nameWhoInvite = owner.firstName + " " + owner.lastName;
+
+        for (const email of emails) {
+          const roomInviteToken =
+            await TokenInviteRoomModel.createTokenInviteRoom(newRoom.id, email);
+
+          const url = `${process.env.FRONTEND_URL}/families/join/${roomInviteToken}`;
+
+          await this.sendMailInvitation(
+            nameWhoInvite,
+            email,
+            url,
+            newRoom.title,
+          );
+
+          invitedUsers.push({ roomInviteToken: url });
+        }
+      }
+
       this.setStatus(200);
       return newRoom;
     } catch (error) {
@@ -318,10 +341,10 @@ export class RoomController extends Controller {
   @Put("update/:roomId")
   @Middlewares(securityMiddleware)
   @Middlewares([validationBodyMiddleware(CreateRoomRequest)])
-  public async updateRoom(
+  public async putRoom(
     @Request() req: any,
     @Path() roomId: string,
-    @Body() body: CreateRoomRequest,
+    @Body() body: EditRoomRequest,
     @Res() errorResponse: TsoaResponse<401 | 404 | 422 | 500, ErrorResponse>,
   ): Promise<RoomAttributes> {
     try {
@@ -362,9 +385,68 @@ export class RoomController extends Controller {
           code: "title_required",
         });
       }
-      prisma.rooms.update({ where: { id: roomId }, data: { title } });
+      const updatedRoom = await RoomModel.putRoom(title, roomId);
       this.setStatus(200);
-      return room;
+      return updatedRoom;
+    } catch (error) {
+      console.log("error", error);
+      return errorResponse(500, {
+        message: "Internal Server Error",
+        code: "internal_server_error",
+      });
+    }
+  }
+
+  @Delete("delete-user/:roomId/:userId")
+  @Middlewares(securityMiddleware)
+  public async deleteUserFromARomm(
+    @Request() req: any,
+    @Path() roomId: string,
+    @Path() userId: string,
+    @Res() errorResponse: TsoaResponse<401 | 404 | 422 | 500, ErrorResponse>,
+  ): Promise<RoomAttributes> {
+    try {
+      const token = getToken(req.headers);
+      const verifiedToken = await jwtVerify(token);
+      if ("code" in verifiedToken) {
+        return errorResponse(401, {
+          message: verifiedToken.message,
+          code: verifiedToken.code,
+        });
+      }
+      const user = await prisma.users.findUnique({
+        where: { id: verifiedToken.id },
+      });
+      if (!user) {
+        return errorResponse(404, {
+          message: "UserModel not found",
+          code: "user_not_found",
+        });
+      }
+      const room = await prisma.rooms.findUnique({ where: { id: roomId } });
+      if (!room) {
+        return errorResponse(404, {
+          message: "Room not found",
+          code: "room_not_found",
+        });
+      }
+      if (room.ownerId !== user.id) {
+        return errorResponse(401, {
+          message: "Unauthorized",
+          code: "unauthorized",
+        });
+      }
+
+      await prisma.roomUsers.delete({
+        where: {
+          roomId_userId: {
+            roomId,
+            userId,
+          },
+        },
+      });
+
+      this.setStatus(200);
     } catch (error) {
       console.log("error", error);
       return errorResponse(500, {
@@ -381,7 +463,7 @@ export class RoomController extends Controller {
     @Path() roomSlug: string,
     @Request() req: any,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
-  ): Promise<RoomAttributes> {
+  ): Promise<GetRoomOfUserResponse> {
     try {
       const token = getToken(req.headers);
       const verifiedToken = await jwtVerify(token);
@@ -403,7 +485,18 @@ export class RoomController extends Controller {
       const room = await prisma.rooms.findUnique({
         where: { slug: roomSlug },
         include: {
-          RoomUsers: true,
+          RoomUsers: {
+            include: {
+              Users: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  id: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
         },
       });
       if (!room) {
@@ -419,8 +512,15 @@ export class RoomController extends Controller {
           code: "unauthorized",
         });
       }
+
+      const transformedRooms = {
+        ...room,
+        users: room.RoomUsers.map((roomUser) => roomUser.Users),
+      };
+
       this.setStatus(200);
-      return room;
+      delete transformedRooms.RoomUsers;
+      return transformedRooms;
     } catch (error) {
       console.log("error", error);
       return errorResponse(500, {
@@ -465,6 +565,7 @@ export class RoomController extends Controller {
             include: {
               Users: {
                 select: {
+                  id: true,
                   firstName: true,
                   lastName: true,
                   profilePicture: true,
@@ -477,7 +578,7 @@ export class RoomController extends Controller {
 
       const transformedRooms = roomsOfTheUser.map(({ RoomUsers, ...rest }) => ({
         ...rest,
-        users: RoomUsers.map((roomUser) => roomUser.Users), // Extraire les utilisateurs
+        users: RoomUsers.map((roomUser) => roomUser.Users),
       }));
 
       return transformedRooms;

@@ -46,10 +46,20 @@ RoomModel.createRoom = (title, ownerId) => __awaiter(void 0, void 0, void 0, fun
     });
     return room;
 });
-RoomModel.getUsersOfARoom = (roomId) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield prisma_1.default.roomUsers.findMany({
-        where: {
-            roomId: roomId,
+RoomModel.putRoom = (title, roomId) => __awaiter(void 0, void 0, void 0, function* () {
+    let slug = (0, slugify_1.default)(title, { lower: true });
+    let uniqueSlug = slug;
+    let count = 1;
+    while (yield prisma_1.default.rooms.findUnique({ where: { slug: uniqueSlug } })) {
+        uniqueSlug = `${slug}-${count++}`;
+    }
+    const room = yield prisma_1.default.rooms.update({
+        where: { id: roomId },
+        data: {
+            title: title,
+            slug: uniqueSlug,
+            updatedAt: new Date().toISOString(),
         },
     });
+    return room;
 });

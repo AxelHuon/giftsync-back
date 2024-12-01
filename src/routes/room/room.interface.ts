@@ -1,10 +1,28 @@
-import { IsArray, IsEmail, IsString, MinLength } from "class-validator";
+import {
+  IsArray,
+  IsEmail,
+  IsOptional,
+  IsString,
+  MinLength,
+} from "class-validator";
 
 export class CreateRoomRequest {
   @IsString()
   @MinLength(3)
   title: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsEmail({}, { each: true })
+  emails?: string[];
 }
+
+export class EditRoomRequest {
+  @IsString()
+  @MinLength(3)
+  title: string;
+}
+
 export class InviteUserRequest {
   @IsArray()
   @IsEmail({}, { each: true })
@@ -29,6 +47,7 @@ export interface JoinRoomResponse {
 }
 
 export interface UserCollectionGetUserOfRoom {
+  id: string;
   firstName: string;
   lastName: string;
   profilePicture: string;

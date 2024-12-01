@@ -208,6 +208,12 @@
                 "properties": {
                     "title": {
                         "type": "string"
+                    },
+                    "emails": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
                     }
                 },
                 "required": [
@@ -279,8 +285,23 @@
                 "type": "object",
                 "additionalProperties": false
             },
+            "EditRoomRequest": {
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "title"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
             "UserCollectionGetUserOfRoom": {
                 "properties": {
+                    "id": {
+                        "type": "string"
+                    },
                     "firstName": {
                         "type": "string"
                     },
@@ -292,6 +313,7 @@
                     }
                 },
                 "required": [
+                    "id",
                     "firstName",
                     "lastName",
                     "profilePicture"
@@ -1205,7 +1227,7 @@
         },
         "/room/update/{roomId}": {
             "put": {
-                "operationId": "UpdateRoom",
+                "operationId": "PutRoom",
                 "responses": {
                     "200": {
                         "description": "Ok",
@@ -1277,11 +1299,90 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/CreateRoomRequest"
+                                "$ref": "#/components/schemas/EditRoomRequest"
                             }
                         }
                     }
                 }
+            }
+        },
+        "/room/delete-user/{roomId}/{userId}": {
+            "delete": {
+                "operationId": "DeleteUserFromARomm",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RoomAttributes"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Room"
+                ],
+                "security": [],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "roomId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "userId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
             }
         },
         "/room/{roomSlug}": {
@@ -1293,7 +1394,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/RoomAttributes"
+                                    "$ref": "#/components/schemas/GetRoomOfUserResponse"
                                 }
                             }
                         }
