@@ -115,6 +115,73 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"UserCollectionGetUserOfRoom": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"firstName": {
+						"type": "string"
+					},
+					"lastName": {
+						"type": "string"
+					},
+					"profilePicture": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"firstName",
+					"lastName",
+					"profilePicture"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"GetRoomOfUserResponse": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"ownerId": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"slug": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"users": {
+						"items": {
+							"$ref": "#/components/schemas/UserCollectionGetUserOfRoom"
+						},
+						"type": "array"
+					},
+					"isOwner": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"id",
+					"ownerId",
+					"title",
+					"slug",
+					"users",
+					"isOwner"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"SecretSantaResponse": {
 				"properties": {
 					"message": {
@@ -293,69 +360,6 @@
 				},
 				"required": [
 					"title"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UserCollectionGetUserOfRoom": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"firstName": {
-						"type": "string"
-					},
-					"lastName": {
-						"type": "string"
-					},
-					"profilePicture": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"firstName",
-					"lastName",
-					"profilePicture"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"GetRoomOfUserResponse": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"ownerId": {
-						"type": "string"
-					},
-					"title": {
-						"type": "string"
-					},
-					"slug": {
-						"type": "string"
-					},
-					"createdAt": {
-						"type": "string",
-						"format": "date-time"
-					},
-					"updatedAt": {
-						"type": "string",
-						"format": "date-time"
-					},
-					"users": {
-						"items": {
-							"$ref": "#/components/schemas/UserCollectionGetUserOfRoom"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"id",
-					"ownerId",
-					"title",
-					"slug",
-					"users"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -799,13 +803,18 @@
 		},
 		"/user/{userId}/rooms": {
 			"get": {
-				"operationId": "GetRoomOfAUser",
+				"operationId": "GetRoomsOfUser",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
-								"schema": {}
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/GetRoomOfUserResponse"
+									},
+									"type": "array"
+								}
 							}
 						}
 					},
@@ -1002,7 +1011,7 @@
 		},
 		"/room/invite-users": {
 			"post": {
-				"operationId": "InviteUsers",
+				"operationId": "InviteUsersToARoom",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -1164,7 +1173,7 @@
 				}
 			}
 		},
-		"/room/delete/{roomId}": {
+		"/room/{roomId}/delete": {
 			"delete": {
 				"operationId": "DeleteRoom",
 				"responses": {
@@ -1225,7 +1234,7 @@
 				]
 			}
 		},
-		"/room/update/{roomId}": {
+		"/room/{roomId}/update": {
 			"put": {
 				"operationId": "PutRoom",
 				"responses": {
@@ -1306,9 +1315,9 @@
 				}
 			}
 		},
-		"/room/delete-user/{roomId}/{userId}": {
+		"/room/{roomId}/user/{userId}": {
 			"delete": {
-				"operationId": "DeleteUserFromARomm",
+				"operationId": "DeleteUserFromARoom",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -1387,7 +1396,7 @@
 		},
 		"/room/{roomSlug}": {
 			"get": {
-				"operationId": "GetRoomById",
+				"operationId": "GetRoomBySlug",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -1444,61 +1453,6 @@
 						}
 					}
 				]
-			}
-		},
-		"/room": {
-			"get": {
-				"operationId": "GetRoomByOfUser",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/GetRoomOfUserResponse"
-									},
-									"type": "array"
-								}
-							}
-						}
-					},
-					"401": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								}
-							}
-						}
-					},
-					"500": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Room"
-				],
-				"security": [],
-				"parameters": []
 			}
 		},
 		"/auth/signup": {

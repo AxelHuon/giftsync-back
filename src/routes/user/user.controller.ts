@@ -25,6 +25,7 @@ import {
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
 import { UserAttributes } from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
+import { GetRoomOfUserResponse } from "../room/room.interface";
 import {
   UserClassEditPasswordRequest,
   UserClassEditPasswordResponse,
@@ -243,20 +244,72 @@ export class UserController extends Controller {
     }
   }
 
-  @Get("{userId}/rooms")
-  @Middlewares([securityMiddleware])
-  public async getRoomOfAUser(
-    @Request() req: any,
+  @Get("/:userId/rooms")
+  @Middlewares(securityMiddleware)
+  public async getRoomsOfUser(
     @Path() userId: string,
+    @Request() req: any,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
-  ): Promise<any> {
+  ): Promise<GetRoomOfUserResponse[]> {
     try {
+      const token = getToken(req.headers);
+      const verifiedToken = await jwtVerify(token);
+
+      if ("code" in verifiedToken) {
+        return errorResponse(401, {
+          message: verifiedToken.message,
+          code: verifiedToken.code,
+        });
+      }
+
+      if (verifiedToken.id !== userId) {
+        return errorResponse(401, {
+          message: "Unauthorized",
+          code: "unauthorized",
+        });
+      }
+
       const user = await prisma.users.findUnique({
-        where: { id: userId },
-        omit: { password: true },
+        where: { id: verifiedToken.id },
+        include: { RoomUsers: true },
       });
-      return user;
-    } catch (err) {
+
+      if (!user) {
+        return errorResponse(404, {
+          message: "User not found",
+          code: "user_not_found",
+        });
+      }
+
+      const rooms = user.RoomUsers?.map((room) => room.roomId) || [];
+      const roomsOfTheUser = await prisma.rooms.findMany({
+        where: { id: { in: rooms } },
+        include: {
+          RoomUsers: {
+            include: {
+              Users: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const transformedRooms = roomsOfTheUser.map(({ RoomUsers, ...rest }) => ({
+        ...rest,
+        users: RoomUsers.map((roomUser) => roomUser.Users),
+        isOwner: rest.ownerId === user.id,
+      }));
+
+      this.setStatus(200);
+      return transformedRooms;
+    } catch (error) {
+      console.error("Error fetching rooms of user:", error);
       return errorResponse(500, {
         message: "Internal Server Error",
         code: "internal_server_error",

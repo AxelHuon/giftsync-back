@@ -110,7 +110,7 @@ export class RoomController extends Controller {
   @Post("invite-users")
   @Middlewares(securityMiddleware)
   @Middlewares([validationBodyMiddleware(InviteUserRequest)])
-  public async inviteUsers(
+  public async inviteUsersToARoom(
     @Request() req: any,
     @Body() body: InviteUserRequest,
     @Res() errorResponse: TsoaResponse<401 | 404 | 422 | 500, ErrorResponse>,
@@ -287,7 +287,7 @@ export class RoomController extends Controller {
     }
   }
 
-  @Delete("delete/:roomId")
+  @Delete(":roomId/delete")
   @Middlewares(securityMiddleware)
   public async deleteRoom(
     @Request() req: any,
@@ -338,7 +338,7 @@ export class RoomController extends Controller {
   }
 
   /*Put title of a Room*/
-  @Put("update/:roomId")
+  @Put(":roomId/update")
   @Middlewares(securityMiddleware)
   @Middlewares([validationBodyMiddleware(CreateRoomRequest)])
   public async putRoom(
@@ -397,9 +397,9 @@ export class RoomController extends Controller {
     }
   }
 
-  @Delete("delete-user/:roomId/:userId")
+  @Delete(":roomId/user/:userId")
   @Middlewares(securityMiddleware)
-  public async deleteUserFromARomm(
+  public async deleteUserFromARoom(
     @Request() req: any,
     @Path() roomId: string,
     @Path() userId: string,
@@ -459,7 +459,7 @@ export class RoomController extends Controller {
   /*Get room by id*/
   @Get("{roomSlug}")
   @Middlewares(securityMiddleware)
-  public async getRoomById(
+  public async getRoomBySlug(
     @Path() roomSlug: string,
     @Request() req: any,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
@@ -512,77 +512,16 @@ export class RoomController extends Controller {
           code: "unauthorized",
         });
       }
-
+      const isOwner = room.ownerId === user.id;
       const transformedRooms = {
         ...room,
         users: room.RoomUsers.map((roomUser) => roomUser.Users),
+        isOwner,
       };
 
       this.setStatus(200);
       delete transformedRooms.RoomUsers;
       return transformedRooms;
-    } catch (error) {
-      console.log("error", error);
-      return errorResponse(500, {
-        message: "Internal Server Error",
-        code: "internal_server_error",
-      });
-    }
-  }
-
-  /*Get room by id*/
-  @Get("/")
-  @Middlewares(securityMiddleware)
-  public async getRoomByOfUser(
-    @Request() req: any,
-    @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
-  ): Promise<GetRoomOfUserResponse[]> {
-    try {
-      const token = getToken(req.headers);
-      const verifiedToken = await jwtVerify(token);
-      if ("code" in verifiedToken) {
-        return errorResponse(401, {
-          message: verifiedToken.message,
-          code: verifiedToken.code,
-        });
-      }
-      const user = await prisma.users.findUnique({
-        where: { id: verifiedToken.id },
-        include: { RoomUsers: true },
-      });
-
-      if (!user) {
-        return errorResponse(404, {
-          message: "UserModel not found",
-          code: "user_not_found",
-        });
-      }
-      const rooms = user.RoomUsers.map((room) => room.roomId);
-      const roomsOfTheUser = await prisma.rooms.findMany({
-        where: { id: { in: rooms } },
-        include: {
-          RoomUsers: {
-            include: {
-              Users: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  profilePicture: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const transformedRooms = roomsOfTheUser.map(({ RoomUsers, ...rest }) => ({
-        ...rest,
-        users: RoomUsers.map((roomUser) => roomUser.Users),
-      }));
-
-      return transformedRooms;
-      this.setStatus(200);
     } catch (error) {
       console.log("error", error);
       return errorResponse(500, {

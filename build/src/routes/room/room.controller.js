@@ -17,17 +17,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -93,7 +82,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
             }
         });
     }
-    inviteUsers(req, body, errorResponse) {
+    inviteUsersToARoom(req, body, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
@@ -342,7 +331,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
             }
         });
     }
-    deleteUserFromARomm(req, roomId, userId, errorResponse) {
+    deleteUserFromARoom(req, roomId, userId, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
@@ -395,7 +384,7 @@ let RoomController = class RoomController extends tsoa_1.Controller {
         });
     }
     /*Get room by id*/
-    getRoomById(roomSlug, req, errorResponse) {
+    getRoomBySlug(roomSlug, req, errorResponse) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = (0, auth_middleware_1.getToken)(req.headers);
@@ -444,66 +433,11 @@ let RoomController = class RoomController extends tsoa_1.Controller {
                         code: "unauthorized",
                     });
                 }
-                const transformedRooms = Object.assign(Object.assign({}, room), { users: room.RoomUsers.map((roomUser) => roomUser.Users) });
+                const isOwner = room.ownerId === user.id;
+                const transformedRooms = Object.assign(Object.assign({}, room), { users: room.RoomUsers.map((roomUser) => roomUser.Users), isOwner });
                 this.setStatus(200);
                 delete transformedRooms.RoomUsers;
                 return transformedRooms;
-            }
-            catch (error) {
-                console.log("error", error);
-                return errorResponse(500, {
-                    message: "Internal Server Error",
-                    code: "internal_server_error",
-                });
-            }
-        });
-    }
-    /*Get room by id*/
-    getRoomByOfUser(req, errorResponse) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const token = (0, auth_middleware_1.getToken)(req.headers);
-                const verifiedToken = yield (0, auth_middleware_1.jwtVerify)(token);
-                if ("code" in verifiedToken) {
-                    return errorResponse(401, {
-                        message: verifiedToken.message,
-                        code: verifiedToken.code,
-                    });
-                }
-                const user = yield prisma_1.default.users.findUnique({
-                    where: { id: verifiedToken.id },
-                    include: { RoomUsers: true },
-                });
-                if (!user) {
-                    return errorResponse(404, {
-                        message: "UserModel not found",
-                        code: "user_not_found",
-                    });
-                }
-                const rooms = user.RoomUsers.map((room) => room.roomId);
-                const roomsOfTheUser = yield prisma_1.default.rooms.findMany({
-                    where: { id: { in: rooms } },
-                    include: {
-                        RoomUsers: {
-                            include: {
-                                Users: {
-                                    select: {
-                                        id: true,
-                                        firstName: true,
-                                        lastName: true,
-                                        profilePicture: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                });
-                const transformedRooms = roomsOfTheUser.map((_a) => {
-                    var { RoomUsers } = _a, rest = __rest(_a, ["RoomUsers"]);
-                    return (Object.assign(Object.assign({}, rest), { users: RoomUsers.map((roomUser) => roomUser.Users) }));
-                });
-                return transformedRooms;
-                this.setStatus(200);
             }
             catch (error) {
                 console.log("error", error);
@@ -566,7 +500,7 @@ __decorate([
     __param(0, (0, tsoa_1.Request)()),
     __param(1, (0, tsoa_1.Body)()),
     __param(2, (0, tsoa_1.Res)())
-], RoomController.prototype, "inviteUsers", null);
+], RoomController.prototype, "inviteUsersToARoom", null);
 __decorate([
     (0, tsoa_1.Post)("join/:token"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
@@ -576,14 +510,14 @@ __decorate([
     __param(2, (0, tsoa_1.Res)())
 ], RoomController.prototype, "joinRoom", null);
 __decorate([
-    (0, tsoa_1.Delete)("delete/:roomId"),
+    (0, tsoa_1.Delete)(":roomId/delete"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     __param(0, (0, tsoa_1.Request)()),
     __param(1, (0, tsoa_1.Path)()),
     __param(2, (0, tsoa_1.Res)())
 ], RoomController.prototype, "deleteRoom", null);
 __decorate([
-    (0, tsoa_1.Put)("update/:roomId"),
+    (0, tsoa_1.Put)(":roomId/update"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(room_interface_1.CreateRoomRequest)]),
     __param(0, (0, tsoa_1.Request)()),
@@ -592,26 +526,20 @@ __decorate([
     __param(3, (0, tsoa_1.Res)())
 ], RoomController.prototype, "putRoom", null);
 __decorate([
-    (0, tsoa_1.Delete)("delete-user/:roomId/:userId"),
+    (0, tsoa_1.Delete)(":roomId/user/:userId"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     __param(0, (0, tsoa_1.Request)()),
     __param(1, (0, tsoa_1.Path)()),
     __param(2, (0, tsoa_1.Path)()),
     __param(3, (0, tsoa_1.Res)())
-], RoomController.prototype, "deleteUserFromARomm", null);
+], RoomController.prototype, "deleteUserFromARoom", null);
 __decorate([
     (0, tsoa_1.Get)("{roomSlug}"),
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     __param(0, (0, tsoa_1.Path)()),
     __param(1, (0, tsoa_1.Request)()),
     __param(2, (0, tsoa_1.Res)())
-], RoomController.prototype, "getRoomById", null);
-__decorate([
-    (0, tsoa_1.Get)("/"),
-    (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
-    __param(0, (0, tsoa_1.Request)()),
-    __param(1, (0, tsoa_1.Res)())
-], RoomController.prototype, "getRoomByOfUser", null);
+], RoomController.prototype, "getRoomBySlug", null);
 exports.RoomController = RoomController = __decorate([
     (0, tsoa_1.Tags)("Room"),
     (0, tsoa_1.Route)("room")

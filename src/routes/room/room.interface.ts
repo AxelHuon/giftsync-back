@@ -61,4 +61,5 @@ export interface GetRoomOfUserResponse {
   createdAt?: Date;
   updatedAt?: Date;
   users: UserCollectionGetUserOfRoom[];
+  isOwner: boolean;
 }

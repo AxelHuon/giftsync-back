@@ -25,21 +25,20 @@ model Gifts {
   giftUrl    String       @db.VarChar(255)
   price      Float
   ownerId    String       @db.Uuid
-  roomId     String       @db.Uuid
   createdAt  DateTime     @db.Timestamptz(6)
   updatedAt  DateTime     @db.Timestamptz(6)
   GiftDonors GiftDonors[]
   Users      Users        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  Rooms      Rooms        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  RoomGifts  RoomGifts[] // Relation plusieurs-à-plusieurs avec Rooms
 }
 
-model RoomUsers {
+model RoomGifts {
+  giftId String @db.VarChar(255)
   roomId String @db.Uuid
-  userId String @db.Uuid
+  Gifts  Gifts  @relation(fields: [giftId], references: [id], onDelete: Cascade)
   Rooms  Rooms  @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  Users  Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([roomId, userId])
+  @@id([giftId, roomId]) // Clé composite pour assurer l'unicité
 }
 
 model Rooms {
@@ -49,17 +48,17 @@ model Rooms {
   title     String      @db.VarChar(255)
   createdAt DateTime    @db.Timestamptz(6)
   updatedAt DateTime    @db.Timestamptz(6)
-  Gifts     Gifts[]
   RoomUsers RoomUsers[]
+  RoomGifts RoomGifts[] // Relation plusieurs-à-plusieurs avec Gifts
 }
 
-model UserRooms {
-  createdAt DateTime @db.Timestamptz(6)
-  updatedAt DateTime @db.Timestamptz(6)
-  UserId    String   @db.Uuid
-  RoomId    String   @db.Uuid
+model RoomUsers {
+  roomId String @db.Uuid
+  userId String @db.Uuid
+  Rooms  Rooms  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  Users  Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([UserId, RoomId])
+  @@id([roomId, userId])
 }
 
 model Users {
@@ -103,4 +102,13 @@ model inviteTokenRooms {
   expiryDate    DateTime @db.Timestamptz(6)
   createdAt     DateTime @db.Timestamptz(6)
   updatedAt     DateTime @db.Timestamptz(6)
+}
+
+model UserRooms {
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+  UserId    String   @db.Uuid
+  RoomId    String   @db.Uuid
+
+  @@id([UserId, RoomId])
 }

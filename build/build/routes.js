@@ -77,6 +77,32 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UserCollectionGetUserOfRoom": {
+        "dataType": "refObject",
+        "properties": {
+            "id": { "dataType": "string", "required": true },
+            "firstName": { "dataType": "string", "required": true },
+            "lastName": { "dataType": "string", "required": true },
+            "profilePicture": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GetRoomOfUserResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "id": { "dataType": "string", "required": true },
+            "ownerId": { "dataType": "string", "required": true },
+            "title": { "dataType": "string", "required": true },
+            "slug": { "dataType": "string", "required": true },
+            "createdAt": { "dataType": "datetime" },
+            "updatedAt": { "dataType": "datetime" },
+            "users": { "dataType": "array", "array": { "dataType": "refObject", "ref": "UserCollectionGetUserOfRoom" }, "required": true },
+            "isOwner": { "dataType": "boolean", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "SecretSantaResponse": {
         "dataType": "refObject",
         "properties": {
@@ -166,31 +192,6 @@ const models = {
         "dataType": "refObject",
         "properties": {
             "title": { "dataType": "string", "required": true },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "UserCollectionGetUserOfRoom": {
-        "dataType": "refObject",
-        "properties": {
-            "id": { "dataType": "string", "required": true },
-            "firstName": { "dataType": "string", "required": true },
-            "lastName": { "dataType": "string", "required": true },
-            "profilePicture": { "dataType": "string", "required": true },
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "GetRoomOfUserResponse": {
-        "dataType": "refObject",
-        "properties": {
-            "id": { "dataType": "string", "required": true },
-            "ownerId": { "dataType": "string", "required": true },
-            "title": { "dataType": "string", "required": true },
-            "slug": { "dataType": "string", "required": true },
-            "createdAt": { "dataType": "datetime" },
-            "updatedAt": { "dataType": "datetime" },
-            "users": { "dataType": "array", "array": { "dataType": "refObject", "ref": "UserCollectionGetUserOfRoom" }, "required": true },
         },
         "additionalProperties": false,
     },
@@ -387,11 +388,11 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.get('/api/user/:userId/rooms', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.getRoomOfAUser)), function UserController_getRoomOfAUser(request, response, next) {
+    app.get('/api/user/:userId/rooms', ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController)), ...((0, runtime_1.fetchMiddlewares)(user_controller_1.UserController.prototype.getRoomsOfUser)), function UserController_getRoomsOfUser(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
-                req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
                 userId: { "in": "path", "name": "userId", "required": true, "dataType": "string" },
+                req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
                 errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
             };
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -400,7 +401,7 @@ function RegisterRoutes(app, opts) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new user_controller_1.UserController();
                 yield templateService.apiHandler({
-                    methodName: 'getRoomOfAUser',
+                    methodName: 'getRoomsOfUser',
                     controller,
                     response,
                     next,
@@ -468,7 +469,7 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.post('/api/room/invite-users', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.inviteUsers)), function RoomController_inviteUsers(request, response, next) {
+    app.post('/api/room/invite-users', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.inviteUsersToARoom)), function RoomController_inviteUsersToARoom(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
@@ -481,7 +482,7 @@ function RegisterRoutes(app, opts) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new room_controller_1.RoomController();
                 yield templateService.apiHandler({
-                    methodName: 'inviteUsers',
+                    methodName: 'inviteUsersToARoom',
                     controller,
                     response,
                     next,
@@ -522,7 +523,7 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.delete('/api/room/delete/:roomId', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.deleteRoom)), function RoomController_deleteRoom(request, response, next) {
+    app.delete('/api/room/:roomId/delete', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.deleteRoom)), function RoomController_deleteRoom(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
@@ -549,7 +550,7 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.put('/api/room/update/:roomId', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.putRoom)), function RoomController_putRoom(request, response, next) {
+    app.put('/api/room/:roomId/update', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.putRoom)), function RoomController_putRoom(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
@@ -577,7 +578,7 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.delete('/api/room/delete-user/:roomId/:userId', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.deleteUserFromARomm)), function RoomController_deleteUserFromARomm(request, response, next) {
+    app.delete('/api/room/:roomId/user/:userId', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.deleteUserFromARoom)), function RoomController_deleteUserFromARoom(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
@@ -591,7 +592,7 @@ function RegisterRoutes(app, opts) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new room_controller_1.RoomController();
                 yield templateService.apiHandler({
-                    methodName: 'deleteUserFromARomm',
+                    methodName: 'deleteUserFromARoom',
                     controller,
                     response,
                     next,
@@ -605,7 +606,7 @@ function RegisterRoutes(app, opts) {
         });
     });
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.get('/api/room/:roomSlug', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.getRoomById)), function RoomController_getRoomById(request, response, next) {
+    app.get('/api/room/:roomSlug', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.getRoomBySlug)), function RoomController_getRoomBySlug(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = {
                 roomSlug: { "in": "path", "name": "roomSlug", "required": true, "dataType": "string" },
@@ -618,33 +619,7 @@ function RegisterRoutes(app, opts) {
                 validatedArgs = templateService.getValidatedArgs({ args, request, response });
                 const controller = new room_controller_1.RoomController();
                 yield templateService.apiHandler({
-                    methodName: 'getRoomById',
-                    controller,
-                    response,
-                    next,
-                    validatedArgs,
-                    successStatus: undefined,
-                });
-            }
-            catch (err) {
-                return next(err);
-            }
-        });
-    });
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    app.get('/api/room', ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController)), ...((0, runtime_1.fetchMiddlewares)(room_controller_1.RoomController.prototype.getRoomByOfUser)), function RoomController_getRoomByOfUser(request, response, next) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const args = {
-                req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
-                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
-            };
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-            let validatedArgs = [];
-            try {
-                validatedArgs = templateService.getValidatedArgs({ args, request, response });
-                const controller = new room_controller_1.RoomController();
-                yield templateService.apiHandler({
-                    methodName: 'getRoomByOfUser',
+                    methodName: 'getRoomBySlug',
                     controller,
                     response,
                     next,
