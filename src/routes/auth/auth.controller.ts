@@ -1,4 +1,4 @@
-import { OAuth2Client } from "google-auth-library";
+import axios from "axios";
 import jwt from "jsonwebtoken";
 import process from "node:process";
 import {
@@ -158,25 +158,20 @@ export class AuthController extends Controller {
 
     try {
       // Crée un nouveau client OAuth2 avec ton Client ID
-      const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+      let googlePayload: any;
 
-      // Vérifie l'ID token (JWT)
-      const ticket = await client.verifyIdToken({
-        idToken,
-        audience: GOOGLE_CLIENT_ID,
-      });
+      const userInfoResponse = await axios.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        },
+      );
 
-      // Récupère le payload
-      const payload = ticket.getPayload();
+      googlePayload = userInfoResponse.data;
 
-      if (!payload) {
-        return errorResponse(400, {
-          message: "Invalid token",
-          code: "invalid_token",
-        });
-      }
-
-      const { email, given_name, family_name, picture } = payload;
+      const { email, given_name, family_name, picture } = googlePayload;
 
       const user = await prisma.users.findUnique({
         where: { email },
