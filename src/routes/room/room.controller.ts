@@ -27,7 +27,7 @@ import { ErrorResponse } from "../../types/Error";
 import {
   CreateRoomRequest,
   EditRoomRequest,
-  GetRoomOfUserResponse,
+  GetRoomElement,
   InviteUserRequest,
   InviteUserResponse,
   JoinRoomRequest,
@@ -463,7 +463,7 @@ export class RoomController extends Controller {
     @Path() roomSlug: string,
     @Request() req: any,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
-  ): Promise<GetRoomOfUserResponse> {
+  ): Promise<GetRoomElement> {
     try {
       const token = getToken(req.headers);
       const verifiedToken = await jwtVerify(token);

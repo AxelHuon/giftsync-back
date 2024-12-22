@@ -6,7 +6,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ResetPasswordRequest = exports.ForgotPasswordRequest = exports.RefreshTokenRequest = exports.SignInUserRequest = exports.RegisterUserRequest = void 0;
+exports.SignInWithGoogleRequest = exports.ResetPasswordRequest = exports.ForgotPasswordRequest = exports.RefreshTokenRequest = exports.SignInUserRequest = exports.RegisterUserRequest = void 0;
 const class_validator_1 = require("class-validator");
 class RegisterUserRequest {
 }
@@ -69,3 +69,9 @@ __decorate([
         message: "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character",
     })
 ], ResetPasswordRequest.prototype, "newPassword", void 0);
+class SignInWithGoogleRequest {
+}
+exports.SignInWithGoogleRequest = SignInWithGoogleRequest;
+__decorate([
+    (0, class_validator_1.IsString)()
+], SignInWithGoogleRequest.prototype, "idToken", void 0);

@@ -88,7 +88,7 @@ const models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "GetRoomOfUserResponse": {
+    "GetRoomElement": {
         "dataType": "refObject",
         "properties": {
             "id": { "dataType": "string", "required": true },
@@ -99,6 +99,15 @@ const models = {
             "updatedAt": { "dataType": "datetime" },
             "users": { "dataType": "array", "array": { "dataType": "refObject", "ref": "UserCollectionGetUserOfRoom" }, "required": true },
             "isOwner": { "dataType": "boolean", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GetRoomOfUserResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "rooms": { "dataType": "array", "array": { "dataType": "refObject", "ref": "GetRoomElement" }, "required": true },
+            "total": { "dataType": "double", "required": true },
         },
         "additionalProperties": false,
     },
@@ -199,8 +208,14 @@ const models = {
     "RegisterUserResponse": {
         "dataType": "refObject",
         "properties": {
-            "message": { "dataType": "string", "required": true },
-            "code": { "dataType": "string", "required": true },
+            "email": { "dataType": "string", "required": true },
+            "firstName": { "dataType": "string", "required": true },
+            "lastName": { "dataType": "string", "required": true },
+            "dateOfBirth": { "dataType": "union", "subSchemas": [{ "dataType": "datetime" }, { "dataType": "string" }], "required": true },
+            "profilePicture": { "dataType": "string" },
+            "id": { "dataType": "string", "required": true },
+            "createdAt": { "dataType": "union", "subSchemas": [{ "dataType": "datetime" }, { "dataType": "string" }], "required": true },
+            "updatedAt": { "dataType": "union", "subSchemas": [{ "dataType": "datetime" }, { "dataType": "string" }], "required": true },
         },
         "additionalProperties": false,
     },
@@ -226,7 +241,7 @@ const models = {
             "firstName": { "dataType": "string", "required": true },
             "lastName": { "dataType": "string", "required": true },
             "profilePicture": { "dataType": "string" },
-            "dateOfBirth": { "dataType": "datetime", "required": true },
+            "dateOfBirth": { "dataType": "union", "subSchemas": [{ "dataType": "datetime" }, { "dataType": "string" }] },
             "email": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
@@ -237,6 +252,14 @@ const models = {
         "properties": {
             "email": { "dataType": "string", "required": true },
             "password": { "dataType": "string", "required": true },
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "SignInWithGoogleRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "idToken": { "dataType": "string", "required": true },
         },
         "additionalProperties": false,
     },
@@ -394,6 +417,7 @@ function RegisterRoutes(app, opts) {
                 userId: { "in": "path", "name": "userId", "required": true, "dataType": "string" },
                 req: { "in": "request", "name": "req", "required": true, "dataType": "object" },
                 errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+                queryString: { "in": "query", "name": "queryString", "dataType": "string" },
             };
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
             let validatedArgs = [];
@@ -672,6 +696,32 @@ function RegisterRoutes(app, opts) {
                 const controller = new auth_controller_1.AuthController();
                 yield templateService.apiHandler({
                     methodName: 'signInUser',
+                    controller,
+                    response,
+                    next,
+                    validatedArgs,
+                    successStatus: undefined,
+                });
+            }
+            catch (err) {
+                return next(err);
+            }
+        });
+    });
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    app.post('/api/auth/signin-google', ...((0, runtime_1.fetchMiddlewares)(auth_controller_1.AuthController)), ...((0, runtime_1.fetchMiddlewares)(auth_controller_1.AuthController.prototype.signInUserWithGoogle)), function AuthController_signInUserWithGoogle(request, response, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const args = {
+                body: { "in": "body", "name": "body", "required": true, "ref": "SignInWithGoogleRequest" },
+                errorResponse: { "in": "res", "name": "500", "required": true, "ref": "ErrorResponse" },
+            };
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+            let validatedArgs = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+                const controller = new auth_controller_1.AuthController();
+                yield templateService.apiHandler({
+                    methodName: 'signInUserWithGoogle',
                     controller,
                     response,
                     next,

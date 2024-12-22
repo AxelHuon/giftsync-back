@@ -22,6 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
+const google_auth_library_1 = require("google-auth-library");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_process_1 = __importDefault(require("node:process"));
 const tsoa_1 = require("tsoa");
@@ -48,10 +49,16 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                     });
                 }
                 this.setStatus(200);
-                yield user_model_1.UserModel.createUser(body);
+                const user = yield user_model_1.UserModel.createUser(body);
                 return {
-                    message: "UserModel successfully registered",
-                    code: "success_register",
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    dateOfBirth: user.dateOfBirth,
+                    profilePicture: user.profilePicture,
+                    id: user.id,
+                    createdAt: user.createdAt,
+                    updatedAt: user.updatedAt,
                 };
             }
             catch (error) {
@@ -118,6 +125,84 @@ let AuthController = class AuthController extends tsoa_1.Controller {
                 }
             }
             catch (error) {
+                return errorResponse(500, {
+                    message: "Internal Server Error",
+                    code: "internal_server_error",
+                });
+            }
+        });
+    }
+    signInUserWithGoogle(body, errorResponse) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
+            const { idToken } = body;
+            const GOOGLE_CLIENT_ID = node_process_1.default.env.GOOGLE_CLIENT_ID;
+            try {
+                // Crée un nouveau client OAuth2 avec ton Client ID
+                const client = new google_auth_library_1.OAuth2Client(GOOGLE_CLIENT_ID);
+                // Vérifie l'ID token (JWT)
+                const ticket = yield client.verifyIdToken({
+                    idToken,
+                    audience: GOOGLE_CLIENT_ID,
+                });
+                // Récupère le payload
+                const payload = ticket.getPayload();
+                if (!payload) {
+                    return errorResponse(400, {
+                        message: "Invalid token",
+                        code: "invalid_token",
+                    });
+                }
+                const { email, given_name, family_name, picture } = payload;
+                const user = yield prisma_1.default.users.findUnique({
+                    where: { email },
+                });
+                if (user) {
+                    this.setStatus(200);
+                    const refreshToken = yield authToken_model_1.AuthTokenModel.createToken(user.id);
+                    const token = jsonwebtoken_1.default.sign({ id: user.id }, (_a = node_process_1.default.env.JWT_SECRET) !== null && _a !== void 0 ? _a : "", {
+                        expiresIn: node_process_1.default.env.JWT_EXPIRATION || "24h",
+                    });
+                    return {
+                        accessToken: token,
+                        refreshToken: refreshToken,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        dateOfBirth: user.dateOfBirth,
+                        profilePicture: user.profilePicture,
+                        id: user.id,
+                    };
+                }
+                else {
+                    const newUser = yield user_model_1.UserModel.createUser({
+                        firstName: given_name,
+                        lastName: family_name,
+                        email: email,
+                        password: undefined,
+                        dateOfBirth: undefined,
+                        profilePicture: picture,
+                    });
+                    /*Create new acces token and refresh token*/
+                    const refreshToken = yield authToken_model_1.AuthTokenModel.createToken(newUser.id);
+                    const token = jsonwebtoken_1.default.sign({ id: newUser.id }, (_b = node_process_1.default.env.JWT_SECRET) !== null && _b !== void 0 ? _b : "", {
+                        expiresIn: node_process_1.default.env.JWT_EXPIRATION || "24h",
+                    });
+                    this.setStatus(200);
+                    return {
+                        accessToken: token,
+                        refreshToken: refreshToken,
+                        email: newUser.email,
+                        firstName: newUser.firstName,
+                        lastName: newUser.lastName,
+                        dateOfBirth: newUser.dateOfBirth,
+                        profilePicture: newUser.profilePicture,
+                        id: newUser.id,
+                    };
+                }
+            }
+            catch (error) {
+                console.error(error);
                 return errorResponse(500, {
                     message: "Internal Server Error",
                     code: "internal_server_error",
@@ -334,6 +419,12 @@ __decorate([
     __param(0, (0, tsoa_1.Body)()),
     __param(1, (0, tsoa_1.Res)())
 ], AuthController.prototype, "signInUser", null);
+__decorate([
+    (0, tsoa_1.Post)("signin-google"),
+    (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(auth_interface_1.SignInWithGoogleRequest)]),
+    __param(0, (0, tsoa_1.Body)()),
+    __param(1, (0, tsoa_1.Res)())
+], AuthController.prototype, "signInUserWithGoogle", null);
 __decorate([
     (0, tsoa_1.Post)("refresh-token"),
     (0, tsoa_1.Middlewares)([(0, validation_middleware_1.validationBodyMiddleware)(auth_interface_1.RefreshTokenRequest)]),

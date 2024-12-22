@@ -53,7 +53,7 @@ export interface UserCollectionGetUserOfRoom {
   profilePicture: string;
 }
 
-export interface GetRoomOfUserResponse {
+export interface GetRoomElement {
   id: string;
   ownerId: string;
   title: string;
@@ -62,4 +62,9 @@ export interface GetRoomOfUserResponse {
   updatedAt?: Date;
   users: UserCollectionGetUserOfRoom[];
   isOwner: boolean;
+}
+
+export interface GetRoomOfUserResponse {
+  rooms: GetRoomElement[];
+  total: number;
 }

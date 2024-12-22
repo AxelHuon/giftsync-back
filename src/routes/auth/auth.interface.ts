@@ -37,8 +37,14 @@ export class RegisterUserRequest {
 }
 
 export interface RegisterUserResponse {
-  message: string;
-  code: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: Date | string;
+  profilePicture?: string;
+  id: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 export class SignInUserRequest {
@@ -56,7 +62,7 @@ export interface SignInUserResponse {
   firstName: string;
   lastName: string;
   profilePicture?: string;
-  dateOfBirth: Date;
+  dateOfBirth?: Date | string;
   email: string;
 }
 
@@ -97,4 +103,9 @@ export class ResetPasswordRequest {
 export interface ResetPasswordResponse {
   message: string;
   code: string;
+}
+
+export class SignInWithGoogleRequest {
+  @IsString()
+  idToken: string;
 }

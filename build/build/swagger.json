@@ -139,7 +139,7 @@
                 "type": "object",
                 "additionalProperties": false
             },
-            "GetRoomOfUserResponse": {
+            "GetRoomElement": {
                 "properties": {
                     "id": {
                         "type": "string"
@@ -178,6 +178,26 @@
                     "slug",
                     "users",
                     "isOwner"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "GetRoomOfUserResponse": {
+                "properties": {
+                    "rooms": {
+                        "items": {
+                            "$ref": "#/components/schemas/GetRoomElement"
+                        },
+                        "type": "array"
+                    },
+                    "total": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "rooms",
+                    "total"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -366,16 +386,63 @@
             },
             "RegisterUserResponse": {
                 "properties": {
-                    "message": {
+                    "email": {
                         "type": "string"
                     },
-                    "code": {
+                    "firstName": {
                         "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "dateOfBirth": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "profilePicture": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "updatedAt": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
                     }
                 },
                 "required": [
-                    "message",
-                    "code"
+                    "email",
+                    "firstName",
+                    "lastName",
+                    "dateOfBirth",
+                    "id",
+                    "createdAt",
+                    "updatedAt"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -430,8 +497,15 @@
                         "type": "string"
                     },
                     "dateOfBirth": {
-                        "type": "string",
-                        "format": "date-time"
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
                     },
                     "email": {
                         "type": "string"
@@ -443,7 +517,6 @@
                     "refreshToken",
                     "firstName",
                     "lastName",
-                    "dateOfBirth",
                     "email"
                 ],
                 "type": "object",
@@ -461,6 +534,18 @@
                 "required": [
                     "email",
                     "password"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "SignInWithGoogleRequest": {
+                "properties": {
+                    "idToken": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "idToken"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -810,10 +895,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "items": {
-                                        "$ref": "#/components/schemas/GetRoomOfUserResponse"
-                                    },
-                                    "type": "array"
+                                    "$ref": "#/components/schemas/GetRoomOfUserResponse"
                                 }
                             }
                         }
@@ -858,6 +940,14 @@
                         "in": "path",
                         "name": "userId",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "queryString",
+                        "required": false,
                         "schema": {
                             "type": "string"
                         }
@@ -1403,7 +1493,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/GetRoomOfUserResponse"
+                                    "$ref": "#/components/schemas/GetRoomElement"
                                 }
                             }
                         }
@@ -1573,6 +1663,68 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/SignInUserRequest"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signin-google": {
+            "post": {
+                "operationId": "SignInUserWithGoogle",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SignInUserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ],
+                "security": [],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SignInWithGoogleRequest"
                             }
                         }
                     }

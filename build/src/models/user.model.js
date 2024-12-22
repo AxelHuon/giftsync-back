@@ -19,13 +19,15 @@ const bcrypt = require("bcrypt");
 class UserModel {
     static createUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const userToCreate = {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
                 password: yield bcrypt.hash(user.password, 12),
-                dateOfBirth: user.dateOfBirth,
+                dateOfBirth: (_a = user.dateOfBirth) !== null && _a !== void 0 ? _a : new Date(),
                 id: (0, uuid_1.v4)(),
+                profilePicture: user.profilePicture,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             };

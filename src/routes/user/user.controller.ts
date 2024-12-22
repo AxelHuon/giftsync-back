@@ -8,6 +8,7 @@ import {
   Middlewares,
   Patch,
   Path,
+  Query,
   Request,
   Res,
   Route,
@@ -25,7 +26,7 @@ import {
 import { validationBodyMiddleware } from "../../middleware/validation.middleware";
 import { UserAttributes } from "../../models/user.model";
 import { ErrorResponse } from "../../types/Error";
-import { GetRoomOfUserResponse } from "../room/room.interface";
+import { GetRoomElement, GetRoomOfUserResponse } from "../room/room.interface";
 import {
   UserClassEditPasswordRequest,
   UserClassEditPasswordResponse,
@@ -250,7 +251,8 @@ export class UserController extends Controller {
     @Path() userId: string,
     @Request() req: any,
     @Res() errorResponse: TsoaResponse<401 | 404 | 500, ErrorResponse>,
-  ): Promise<GetRoomOfUserResponse[]> {
+    @Query() queryString?: string,
+  ): Promise<GetRoomOfUserResponse> {
     try {
       const token = getToken(req.headers);
       const verifiedToken = await jwtVerify(token);
@@ -282,8 +284,17 @@ export class UserController extends Controller {
       }
 
       const rooms = user.RoomUsers?.map((room) => room.roomId) || [];
+
+      // Query the rooms based on the optional queryString
       const roomsOfTheUser = await prisma.rooms.findMany({
-        where: { id: { in: rooms } },
+        where: {
+          id: { in: rooms },
+          ...(queryString && queryString !== ""
+            ? {
+                OR: [{ title: { contains: queryString, mode: "insensitive" } }],
+              }
+            : {}),
+        },
         include: {
           RoomUsers: {
             include: {
@@ -300,14 +311,19 @@ export class UserController extends Controller {
         },
       });
 
-      const transformedRooms = roomsOfTheUser.map(({ RoomUsers, ...rest }) => ({
-        ...rest,
-        users: RoomUsers.map((roomUser) => roomUser.Users),
-        isOwner: rest.ownerId === user.id,
-      }));
+      const transformedRooms: GetRoomElement[] = roomsOfTheUser.map(
+        ({ RoomUsers, ...rest }) => ({
+          ...rest,
+          users: RoomUsers.map((roomUser) => roomUser.Users),
+          isOwner: rest.ownerId === user.id,
+        }),
+      );
 
       this.setStatus(200);
-      return transformedRooms;
+      return {
+        rooms: transformedRooms,
+        total: transformedRooms.length,
+      };
     } catch (error) {
       console.error("Error fetching rooms of user:", error);
       return errorResponse(500, {

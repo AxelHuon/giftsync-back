@@ -1,3 +1,4 @@
+import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import process from "node:process";
 import {
@@ -29,6 +30,7 @@ import {
   ResetPasswordResponse,
   SignInUserRequest,
   SignInUserResponse,
+  SignInWithGoogleRequest,
 } from "./auth.interface";
 
 const bcrypt = require("bcrypt");
@@ -55,10 +57,16 @@ export class AuthController extends Controller {
         });
       }
       this.setStatus(200);
-      await UserModel.createUser(body);
+      const user = await UserModel.createUser(body);
       return {
-        message: "UserModel successfully registered",
-        code: "success_register",
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        dateOfBirth: user.dateOfBirth,
+        profilePicture: user.profilePicture,
+        id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       };
     } catch (error) {
       console.log(error);
@@ -133,6 +141,95 @@ export class AuthController extends Controller {
         });
       }
     } catch (error) {
+      return errorResponse(500, {
+        message: "Internal Server Error",
+        code: "internal_server_error",
+      });
+    }
+  }
+  @Post("signin-google")
+  @Middlewares([validationBodyMiddleware(SignInWithGoogleRequest)])
+  public async signInUserWithGoogle(
+    @Body() body: SignInWithGoogleRequest,
+    @Res() errorResponse: TsoaResponse<400 | 401 | 500, ErrorResponse>,
+  ): Promise<SignInUserResponse> {
+    const { idToken } = body;
+    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
+    try {
+      // Crée un nouveau client OAuth2 avec ton Client ID
+      const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+      // Vérifie l'ID token (JWT)
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: GOOGLE_CLIENT_ID,
+      });
+
+      // Récupère le payload
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        return errorResponse(400, {
+          message: "Invalid token",
+          code: "invalid_token",
+        });
+      }
+
+      const { email, given_name, family_name, picture } = payload;
+
+      const user = await prisma.users.findUnique({
+        where: { email },
+      });
+
+      if (user) {
+        this.setStatus(200);
+        const refreshToken = await AuthTokenModel.createToken(user.id);
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET ?? "", {
+          expiresIn: process.env.JWT_EXPIRATION || "24h",
+        });
+        return {
+          accessToken: token,
+          refreshToken: refreshToken,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          dateOfBirth: user.dateOfBirth,
+          profilePicture: user.profilePicture,
+          id: user.id,
+        };
+      } else {
+        const newUser = await UserModel.createUser({
+          firstName: given_name,
+          lastName: family_name,
+          email: email,
+          password: undefined,
+          dateOfBirth: undefined,
+          profilePicture: picture,
+        });
+        /*Create new acces token and refresh token*/
+        const refreshToken = await AuthTokenModel.createToken(newUser.id);
+        const token = jwt.sign(
+          { id: newUser.id },
+          process.env.JWT_SECRET ?? "",
+          {
+            expiresIn: process.env.JWT_EXPIRATION || "24h",
+          },
+        );
+        this.setStatus(200);
+        return {
+          accessToken: token,
+          refreshToken: refreshToken,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          dateOfBirth: newUser.dateOfBirth,
+          profilePicture: newUser.profilePicture,
+          id: newUser.id,
+        };
+      }
+    } catch (error) {
+      console.error(error);
       return errorResponse(500, {
         message: "Internal Server Error",
         code: "internal_server_error",

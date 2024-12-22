@@ -230,7 +230,7 @@ let UserController = class UserController extends tsoa_1.Controller {
             }
         });
     }
-    getRoomsOfUser(userId, req, errorResponse) {
+    getRoomsOfUser(userId, req, errorResponse, queryString) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
@@ -259,8 +259,13 @@ let UserController = class UserController extends tsoa_1.Controller {
                     });
                 }
                 const rooms = ((_a = user.RoomUsers) === null || _a === void 0 ? void 0 : _a.map((room) => room.roomId)) || [];
+                // Query the rooms based on the optional queryString
                 const roomsOfTheUser = yield prisma_1.default.rooms.findMany({
-                    where: { id: { in: rooms } },
+                    where: Object.assign({ id: { in: rooms } }, (queryString && queryString !== ""
+                        ? {
+                            OR: [{ title: { contains: queryString, mode: "insensitive" } }],
+                        }
+                        : {})),
                     include: {
                         RoomUsers: {
                             include: {
@@ -281,7 +286,10 @@ let UserController = class UserController extends tsoa_1.Controller {
                     return (Object.assign(Object.assign({}, rest), { users: RoomUsers.map((roomUser) => roomUser.Users), isOwner: rest.ownerId === user.id }));
                 });
                 this.setStatus(200);
-                return transformedRooms;
+                return {
+                    rooms: transformedRooms,
+                    total: transformedRooms.length,
+                };
             }
             catch (error) {
                 console.error("Error fetching rooms of user:", error);
@@ -328,7 +336,8 @@ __decorate([
     (0, tsoa_1.Middlewares)(auth_middleware_1.securityMiddleware),
     __param(0, (0, tsoa_1.Path)()),
     __param(1, (0, tsoa_1.Request)()),
-    __param(2, (0, tsoa_1.Res)())
+    __param(2, (0, tsoa_1.Res)()),
+    __param(3, (0, tsoa_1.Query)())
 ], UserController.prototype, "getRoomsOfUser", null);
 exports.UserController = UserController = __decorate([
     (0, tsoa_1.Tags)("User"),
