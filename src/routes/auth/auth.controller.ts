@@ -86,6 +86,7 @@ export class AuthController extends Controller {
     const secretKey = process.env.JWT_SECRET;
     try {
       const { email, password: passwordRequest } = body;
+
       if (!email || !passwordRequest) {
         return errorResponse(400, {
           message: "Email and password are required",
@@ -97,6 +98,13 @@ export class AuthController extends Controller {
       });
 
       if (user) {
+        if (!user.password) {
+          return errorResponse(400, {
+            message: "Incorrect email and password combination",
+            code: "error_signIn_combination",
+          });
+        }
+
         const passwordValid = await bcrypt.compare(
           passwordRequest,
           user.password,
@@ -140,6 +148,7 @@ export class AuthController extends Controller {
         });
       }
     } catch (error) {
+      console.log(error);
       return errorResponse(500, {
         message: "Internal Server Error",
         code: "internal_server_error",
