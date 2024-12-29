@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("PROD_DATABASE_URL")
 }
 
 model GiftDonors {
@@ -65,7 +65,7 @@ model Users {
   id             String       @id @db.Uuid
   firstName      String?      @db.VarChar(255)
   lastName       String?      @db.VarChar(255)
-  profilePicture String?      @db.VarChar(255)
+  profilePicture String?      @db.Text
   email          String?      @unique @db.VarChar(255)
   password       String?      @db.VarChar(255)
   dateOfBirth    DateTime?    @db.Timestamptz(6)

@@ -6,7 +6,7 @@ export const sendEmail = async (
   html: string,
 ): Promise<void> => {
   await transport.sendMail({
-    from: "noreply@giftsync.fr",
+    from: '"GiftSync" <noreply@giftsync.fr>',
     to,
     subject,
     html,

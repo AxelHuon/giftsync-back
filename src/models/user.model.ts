@@ -34,20 +34,19 @@ export class UserModel {
       lastName: user.lastName,
       email: user.email,
       id: uuidv4(),
+      dateOfBirth: user.dateOfBirth,
+      profilePicture: user.profilePicture,
+      password: user.password
+        ? await bcrypt.hash(user.password, 10)
+        : undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    if (user.profilePicture) {
-      userToCreate.profilePicture = user.profilePicture;
-    }
-
-    if (user.password) {
-      userToCreate.password = await bcrypt.hash(user.password, 10);
-    }
-    if (user.dateOfBirth) {
-      userToCreate.dateOfBirth = user.dateOfBirth;
-    }
+    /*Remove undefined value from userToCreate */
+    Object.keys(userToCreate).forEach(
+      (key) => userToCreate[key] === undefined && delete userToCreate[key],
+    );
 
     return await prisma.users.create({
       data: userToCreate,

@@ -107,7 +107,6 @@ export class AuthController extends Controller {
             code: "error_signIn_combination",
           });
         }
-
         const tokenExists = await prisma.authTokens.findMany({
           where: { user: user.id },
         });
